@@ -1,0 +1,74 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} 研发部 {% endblock title %}
+
+{% block content %}
+
+    <!-- Header -->
+    <div class="header bg-primary pb-6">
+      <div class="container-fluid">
+        <div class="header-body">
+          <div class="row align-items-center py-4">
+            <div class="col-lg-6 col-7">
+              <h6 class="h2 text-white d-inline-block mb-0">日报</h6>
+            </div>
+            <div class="col-lg-6 col-5 text-right">
+              <button type="button" class="btn btn-sm btn-neutral" data-toggle="modal" data-target="#newProjectModal">新建项目</button>
+              <a href="#" class="btn btn-sm btn-neutral">筛选</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page content -->
+    <div class="container-fluid mt--6">
+      <div class="row">
+        <!-- Daily Report Cards -->
+        {% for daily in daily_reports %}
+          <div class="col-lg-4 col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">日报 - {{ daily.date }}</h5>
+              </div>
+              <div class="card-body">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>字段</th>
+                      <th>内容</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>用户名</td>
+                      <td>{{ daily.user_profile.user.username }}</td>
+                    </tr>
+                    <tr>
+                      <td>日期</td>
+                      <td>{{ daily.date }}</td>
+                    </tr>
+                    <tr>
+                      <td>内容</td>
+                      <td>{{ daily.content }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="col">
+            <p>没有日报记录。</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% include "includes/footer.html" %}
+    </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+
+{% endblock javascripts %}

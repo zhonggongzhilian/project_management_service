@@ -29,7 +29,7 @@ class Project(models.Model):
     end_date = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
     progress = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)  # 0.00 to 100.00
-    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    owner = models.ManyToManyField(User, related_name='projects', blank=True)
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -51,3 +51,16 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class Daily(models.Model):
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    date = models.DateField()
+    content = models.TextField()
+
+    class Meta:
+        unique_together = ('user_profile', 'date')
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"Report by {self.user_profile.user.username} on {self.date}"
