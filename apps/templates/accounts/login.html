@@ -14,7 +14,7 @@
           <div class="card bg-secondary shadow border-0">
             <div class="card-header bg-transparent pb-5">
               <div class="text-muted text-center mt-2 mb-3">
-                Sign IN
+                登录
               </div>
             </div>
             <div class="card-body px-lg-5 py-lg-5">
@@ -24,7 +24,7 @@
                   <p>{{ msg }}</p>
                 {% else %}
                   <p>
-                    Add your credentials
+                    请填写信息
                   </p>
                 {% endif %}  
 
@@ -50,24 +50,18 @@
                     {{ form.password }}
                   </div>
                 </div>
-                <div class="custom-control custom-control-alternative custom-checkbox">
-                  <input class="custom-control-input" id=" customCheckLogin" type="checkbox">
-                  <label class="custom-control-label" for=" customCheckLogin">
-                    <span class="text-muted">Remember me</span>
-                  </label>
-                </div>
                 <div class="text-center">
-                  <button type="submit" class="btn btn-primary my-4">Sign in</button>
+                  <button type="submit" class="btn btn-primary my-4">登录</button>
                 </div>
               </form>
             </div>
           </div>
           <div class="row mt-3">
             <div class="col-6">
-              <a href="{% url 'register' %}" class="text-light"><small>Register</small></a>
+              <a href="{% url 'register' %}" class="text-light"><small>注册</small></a>
             </div>
             <div class="col-6 text-right">
-              <a href="https://appseed.us/support" class="text-light"><small>Get Support</small></a>
+              <a href="tel:+8613151052286" class="text-light"><small>联系仲工</small></a>
             </div>
           </div>
         </div>

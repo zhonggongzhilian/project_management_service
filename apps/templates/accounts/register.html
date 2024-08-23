@@ -16,7 +16,7 @@
           <div class="card bg-secondary shadow border-0">
             <div class="card-header bg-transparent pb-5">
               <div class="text-muted text-center mt-2 mb-4">
-                Sign UP
+                注册
               </div>
             </div>
             <div class="card-body px-lg-5 py-lg-5">
@@ -25,9 +25,9 @@
                 {% if msg %}
                   <small>{{ msg | safe }}</small>
                 {% else %}
-                  Add your credentials
-                {% endif %}  
-              
+                  请填写用户信息
+                {% endif %}
+
               </div>
 
               {% if not success %}
@@ -35,7 +35,7 @@
                 <form method="POST">
 
                   {% csrf_token %}
-            
+
                   <div class="form-group">
                     <div class="input-group input-group-alternative mb-3">
                       <div class="input-group-prepend">
@@ -49,12 +49,12 @@
                   <div class="form-group">
                     <div class="input-group input-group-alternative mb-3">
                       <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="ni ni-email-83"></i></span>
+                        <span class="input-group-text"><i class="fa fa-phone"></i></span>
                       </div>
-                      {{ form.email }}
+                      {{ form.phone_number }}
                     </div>
                   </div>
-                  <span class="text-error">{{ form.email.errors }}</span>
+                  <span class="text-error">{{ form.phone_number.errors }}</span>
 
                   <div class="form-group">
                     <div class="input-group input-group-alternative">
@@ -81,18 +81,18 @@
                       <div class="custom-control custom-control-alternative custom-checkbox">
                         <input class="custom-control-input" id="customCheckRegister" type="checkbox">
                         <label class="custom-control-label" for="customCheckRegister">
-                          <span class="text-muted">I agree with the <a href="#!">Privacy Policy</a></span>
+                          <span class="text-muted">我同意 <a href="#!">隐私协议</a></span>
                         </label>
                       </div>
                     </div>
                   </div>
                   <div class="text-center">
-                    <button type="submit" class="btn btn-primary mt-4">Create account</button>
+                    <button type="submit" class="btn btn-primary mt-4">创建账户</button>
                   </div>
                 </form>
 
-              {% endif %}  
-  
+              {% endif %}
+
             </div>
           </div>
 
@@ -102,10 +102,10 @@
       <div class="row mt-3">
         <div class="col-3"></div>
         <div class="col-3">
-          <a href="{% url 'login' %}" class="text-light"><small>Login</small></a>
+          <a href="{% url 'login' %}" class="text-light"><small>登录</small></a>
         </div>
         <div class="col-3 text-right">
-          <a href="https://appseed.us/support" class="text-light"><small>Get Support</small></a>
+          <a href="tel:+8613151052286" class="text-light"><small>联系仲工</small></a>
         </div>
       </div>
 
