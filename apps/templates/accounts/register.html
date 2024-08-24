@@ -7,112 +7,134 @@
 
 {% block content %}
 
-    <!-- Page content -->
-    <div class="container mt--8 pb-5">
-      <!-- Table -->
-      <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8">
-        
-          <div class="card bg-secondary shadow border-0">
-            <div class="card-header bg-transparent pb-5">
-              <div class="text-muted text-center mt-2 mb-4">
-                注册
-              </div>
-            </div>
-            <div class="card-body px-lg-5 py-lg-5">
-              <div class="text-center text-muted mb-4">
-
-                {% if msg %}
-                  <small>{{ msg | safe }}</small>
-                {% else %}
-                  请填写用户信息
-                {% endif %}
-
-              </div>
-
-              {% if not success %}
-
-                <form method="POST">
-
-                  {% csrf_token %}
-
-                  <div class="form-group">
-                    <div class="input-group input-group-alternative mb-3">
-                      <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
-                      </div>
-                      {{ form.username }}
-                    </div>
-                  </div>
-                  <span class="text-error">{{ form.username.errors }}</span>
-
-                  <div class="form-group">
-                    <div class="input-group input-group-alternative mb-3">
-                      <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fa fa-phone"></i></span>
-                      </div>
-                      {{ form.phone_number }}
-                    </div>
-                  </div>
-                  <span class="text-error">{{ form.phone_number.errors }}</span>
-
-                  <div class="form-group">
-                    <div class="input-group input-group-alternative">
-                      <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
-                      </div>
-                      {{ form.password1 }}
-                    </div>
-                  </div>
-                  <span class="text-error">{{ form.password1.errors }}</span>
-
-                  <div class="form-group">
-                    <div class="input-group input-group-alternative">
-                      <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
-                      </div>
-                      {{ form.password2 }}
-                    </div>
-                  </div>
-                  <span class="text-error">{{ form.password2.errors }}</span>
-
-                  <div class="row my-4">
-                    <div class="col-12">
-                      <div class="custom-control custom-control-alternative custom-checkbox">
-                        <input class="custom-control-input" id="customCheckRegister" type="checkbox">
-                        <label class="custom-control-label" for="customCheckRegister">
-                          <span class="text-muted">我同意 <a href="#!">隐私协议</a></span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="text-center">
-                    <button type="submit" class="btn btn-primary mt-4">创建账户</button>
-                  </div>
-                </form>
-
-              {% endif %}
-
-            </div>
+<!-- Page content -->
+<div class="container mt--8 pb-5">
+  <!-- Table -->
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+      <div class="card bg-secondary shadow border-0">
+        <div class="card-header bg-transparent pb-5">
+          <div class="text-muted text-center mt-2 mb-4">
+            注册
+          </div>
+        </div>
+        <div class="card-body px-lg-5 py-lg-5">
+          <div class="text-center text-muted mb-4">
+            {% if msg %}
+              <small>{{ msg | safe }}</small>
+            {% else %}
+              请填写用户信息
+            {% endif %}
           </div>
 
-        </div>
-      </div>
+          {% if not success %}
 
-      <div class="row mt-3">
-        <div class="col-3"></div>
-        <div class="col-3">
-          <a href="{% url 'login' %}" class="text-light"><small>登录</small></a>
-        </div>
-        <div class="col-3 text-right">
-          <a href="tel:+8613151052286" class="text-light"><small>联系仲工</small></a>
+            <form method="POST" id="registrationForm">
+              {% csrf_token %}
+
+              <div class="form-group">
+                <div class="input-group input-group-alternative mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="ni ni-hat-3"></i></span>
+                  </div>
+                  {{ form.username }}
+                </div>
+              </div>
+              <span class="text-error">{{ form.username.errors }}</span>
+
+              <div class="form-group">
+                <div class="input-group input-group-alternative mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fa fa-phone"></i></span>
+                  </div>
+                  {{ form.phone_number }}
+                </div>
+              </div>
+              <span class="text-error">{{ form.phone_number.errors }}</span>
+
+              <div class="form-group">
+                <div class="input-group input-group-alternative">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
+                  </div>
+                  {{ form.password1 }}
+                </div>
+              </div>
+              <span class="text-error">{{ form.password1.errors }}</span>
+
+              <div class="form-group">
+                <div class="input-group input-group-alternative">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
+                  </div>
+                  {{ form.password2 }}
+                </div>
+              </div>
+              <span class="text-error">{{ form.password2.errors }}</span>
+
+              <!-- Invitation Code Field -->
+              <div class="form-group">
+                <div class="input-group input-group-alternative mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fa fa-key"></i></span>
+                  </div>
+                  <input type="text" class="form-control" id="invitationCode" name="invitation_code" placeholder="邀请码" required>
+                </div>
+                <span class="text-error" id="invitationCodeError"></span>
+              </div>
+
+              <div class="row my-4">
+                <div class="col-12">
+                  <div class="custom-control custom-control-alternative custom-checkbox">
+                    <input class="custom-control-input" id="customCheckRegister" type="checkbox">
+                    <label class="custom-control-label" for="customCheckRegister">
+                      <span class="text-muted">我同意 <a href="#!">隐私协议</a></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary mt-4">创建账户</button>
+              </div>
+            </form>
+
+          {% endif %}
+
         </div>
       </div>
 
     </div>
   </div>
 
+  <div class="row mt-3">
+    <div class="col-3"></div>
+    <div class="col-3">
+      <a href="{% url 'login' %}" class="text-light"><small>登录</small></a>
+    </div>
+    <div class="col-3 text-right">
+      <a href="tel:+8613151052286" class="text-light"><small>联系仲工</small></a>
+    </div>
+  </div>
+
+</div>
 {% endblock content %}
 
-<!-- Specific JS goes HERE --> 
-{% block javascripts %}{% endblock javascripts %}
+<!-- Specific JS goes HERE -->
+{% block javascripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('registrationForm').addEventListener('submit', function(event) {
+      var invitationCode = document.getElementById('invitationCode').value;
+      var validInvitationCode = 'ZGZL@8888';
+      var invitationCodeError = document.getElementById('invitationCodeError');
+
+      if (invitationCode !== validInvitationCode) {
+        event.preventDefault();
+        invitationCodeError.textContent = '邀请码不正确。请检查后重新输入。';
+      } else {
+        invitationCodeError.textContent = '';
+      }
+    });
+  });
+</script>
+{% endblock javascripts %}
