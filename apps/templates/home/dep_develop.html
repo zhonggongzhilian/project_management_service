@@ -1,0 +1,256 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} 研发部 {% endblock title %}
+
+{% block content %}
+
+<style>
+  /* Ensure the table layout is auto */
+  .table {
+    table-layout: auto;
+  }
+
+  /* Allow text to wrap and add some padding for better readability */
+  .table td {
+    word-wrap: break-word;
+    white-space: normal; /* Ensure text wraps and doesn't overflow */
+  }
+
+  /* Optionally, you can also set a max-width if you want to limit the column width */
+  .table td:nth-child(2) { /* Assuming the 2nd column is 项目进展 */
+    max-width: 200px; /* Adjust this value as needed */
+    min-width: 200px;
+  }
+</style>
+
+<!-- Header -->
+<div class="header bg-primary pb-6">
+    <div class="container-fluid">
+        <div class="header-body">
+            <div class="row align-items-center py-4">
+                <div class="col-lg-6 col-7">
+                    <h6 class="h2 text-white d-inline-block mb-0">研发部项目进度管理</h6>
+                </div>
+                <div class="col-lg-6 col-5 text-right">
+                    <button type="button" class="btn btn-sm btn-neutral" data-toggle="modal"
+                            data-target="#newProjectModal">新建项目
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Page content -->
+<div class="container-fluid mt--6">
+    <div class="row">
+        <div class="col">
+            <div class="card border-0">
+                <div class="card-header">
+                    <h3 class="mb-0">项目列表</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                        <tr>
+                            <th scope="col">项目名称</th>
+                            <th scope="col">项目进展</th>
+                            <th scope="col">开始日期</th>
+                            <th scope="col">结束日期</th>
+                            <th scope="col">状态</th>
+                            <th scope="col">进度</th>
+                            <th scope="col">负责人</th>
+                            <th scope="col">优先级</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for project in projects %}
+                        <tr class="project-row" data-toggle="modal" data-target="#editProjectModal"
+                            data-id="{{ project.id }}" data-name="{{ project.name }}"
+                            data-description="{{ project.description }}" data-start_date="{{ project.start_date }}"
+                            data-end_date="{{ project.end_date }}" data-status="{{ project.status }}"
+                            data-priority="{{ project.priority }}"
+                            data-owners="{{ project.owner.all|join:',' }}">
+                            <td>{{ project.name }}</td>
+                            <td>{{ project.description|linebreaksbr }}</td>
+                            <td>{{ project.start_date }}</td>
+                            <td>{{ project.end_date }}</td>
+                            <td>{{ project.get_status_display }}</td>
+                            <td>{{ project.progress }}%</td>
+                            <td>
+                                {% for user in project.owner.all %}
+                                {{ user.username }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>{{ project.get_priority_display }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">没有项目</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "includes/footer.html" %}
+
+</div>
+
+<!-- New Project Modal -->
+<div class="modal fade" id="newProjectModal" tabindex="-1" role="dialog" aria-labelledby="newProjectModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newProjectModalLabel">新建项目</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'dep_develop_create_project' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="projectName">项目名称</label>
+                        <input type="text" class="form-control" id="projectName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="projectDescription">项目进展</label>
+                        <textarea class="form-control" id="projectDescription" name="description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="startDate">开始日期</label>
+                        <input type="date" class="form-control" id="startDate" name="start_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">结束日期</label>
+                        <input type="date" class="form-control" id="endDate" name="end_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">状态</label>
+                        <select class="form-control" id="status" name="status" required>
+                            <option value="not_started">未开始</option>
+                            <option value="in_progress">进行中</option>
+                            <option value="completed">已完成</option>
+                            <option value="delayed">延期</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="priority">优先级</label>
+                        <select class="form-control" id="priority" name="priority" required>
+                            <option value="low">低</option>
+                            <option value="medium">中</option>
+                            <option value="high">高</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="owner">负责人</label>
+                        <select multiple class="form-control" id="owner" name="owner">
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Project Modal -->
+<div class="modal fade" id="editProjectModal" tabindex="-1" role="dialog" aria-labelledby="editProjectModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProjectModalLabel">编辑项目</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'dep_develop_edit_project' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="editProjectId" name="id">
+                    <div class="form-group">
+                        <label for="editProjectName">项目名称</label>
+                        <input type="text" class="form-control" id="editProjectName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProjectDescription">项目进展</label>
+                        <textarea class="form-control" id="editProjectDescription" name="description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStartDate">开始日期</label>
+                        <input type="date" class="form-control" id="editStartDate" name="start_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEndDate">结束日期</label>
+                        <input type="date" class="form-control" id="editEndDate" name="end_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">状态</label>
+                        <select class="form-control" id="editStatus" name="status" required>
+                            <option value="not_started">未开始</option>
+                            <option value="in_progress">进行中</option>
+                            <option value="completed">已完成</option>
+                            <option value="delayed">延期</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPriority">优先级</label>
+                        <select class="form-control" id="editPriority" name="priority" required>
+                            <option value="low">低</option>
+                            <option value="medium">中</option>
+                            <option value="high">高</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editOwner">负责人</label>
+                        <select multiple class="form-control" id="editOwner" name="owner">
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">保存修改</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+    $(document).ready(function() {
+      $('.project-row').on('click', function() {
+        var projectId = $(this).data('id');
+        var projectName = $(this).data('name');
+        var projectDescription = $(this).data('description');
+        var startDate = $(this).data('start_date');
+        var endDate = $(this).data('end_date');
+        var status = $(this).data('status');
+        var priority = $(this).data('priority');
+        var owners = $(this).data('owners').split(',');
+
+        $('#editProjectId').val(projectId);
+        $('#editProjectName').val(projectName);
+        $('#editProjectDescription').val(projectDescription);
+        $('#editStartDate').val(startDate);
+        $('#editEndDate').val(endDate);
+        $('#editStatus').val(status);
+        $('#editPriority').val(priority);
+
+        $('#editOwner').val(owners);
+        $('#editOwner').trigger('change'); // For select2 or similar plugins if used
+      });
+    });
+</script>
+{% endblock javascripts %}
