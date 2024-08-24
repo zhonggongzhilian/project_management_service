@@ -3,72 +3,139 @@
 {% block title %} 研发部 {% endblock title %}
 
 {% block content %}
+<style>
+    /* Floating Button Styles */
+    .btn-floating {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        font-size: 24px;
+        z-index: 1000;
+    }
 
-    <!-- Header -->
-    <div class="header bg-primary pb-6">
-      <div class="container-fluid">
+    .btn-danger.btn-floating {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .btn-danger.btn-floating:hover {
+        background-color: #c82333;
+    }
+
+    /* Card Styles */
+    .card {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 16px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .card-body {
+        padding: 16px;
+    }
+
+    .card-content {
+        font-size: 16px;
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 20px;
+        font-size: 18px;
+        color: #6c757d;
+    }
+</style>
+
+<!-- Header -->
+<div class="header bg-primary pb-6">
+    <div class="container-fluid">
         <div class="header-body">
-          <div class="row align-items-center py-4">
-            <div class="col-lg-6 col-7">
-              <h6 class="h2 text-white d-inline-block mb-0">日报</h6>
+            <div class="row align-items-center py-4">
+                <div class="col-lg-6 col-7">
+                    <h6 class="h2 text-white d-inline-block mb-0">日报</h6>
+                </div>
             </div>
-            <div class="col-lg-6 col-5 text-right">
-              <button type="button" class="btn btn-sm btn-neutral" data-toggle="modal" data-target="#newProjectModal">新建项目</button>
-              <a href="#" class="btn btn-sm btn-neutral">筛选</a>
-            </div>
-          </div>
         </div>
-      </div>
     </div>
+</div>
 
-    <!-- Page content -->
-    <div class="container-fluid mt--6">
-      <div class="row">
+<!-- Page content -->
+<div class="container-fluid mt--6">
+    <div class="row">
         <!-- Daily Report Cards -->
         {% for daily in daily_reports %}
-          <div class="col-lg-4 col-md-6">
+        <div class="col-lg-4 col-md-6">
             <div class="card">
-              <div class="card-header">
-                <h5 class="mb-0">日报 - {{ daily.date }}</h5>
-              </div>
-              <div class="card-body">
-                <table class="table table-striped">
-                  <thead>
-                    <tr>
-                      <th>字段</th>
-                      <th>内容</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>用户名</td>
-                      <td>{{ daily.user_profile.user.username }}</td>
-                    </tr>
-                    <tr>
-                      <td>日期</td>
-                      <td>{{ daily.date }}</td>
-                    </tr>
-                    <tr>
-                      <td>内容</td>
-                      <td>{{ daily.content }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+                <div class="card-header">
+                    {{ daily.user_profile.department }} - {{ daily.user_profile.user.username }} - {{ daily.date|date:"Y/m/d" }}
+                </div>
+                <div class="card-body">
+                    <div class="card-content">
+                        <p> {{ daily.content|linebreaksbr }}</p>
+                    </div>
+                </div>
             </div>
-          </div>
+        </div>
         {% empty %}
-          <div class="col">
-            <p>没有日报记录。</p>
-          </div>
+        <div class="col">
+            <p class="empty-message">没有日报记录。</p>
+        </div>
         {% endfor %}
-      </div>
-
-      {% include "includes/footer.html" %}
     </div>
+
+    {% include "includes/footer.html" %}
+</div>
+
+<!-- Floating Button -->
+<button type="button" class="btn btn-danger btn-floating" data-toggle="modal" data-target="#reportModal">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- Report Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabel">提交日报</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" action="{% url 'daily_add' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="content">内容</label>
+                        <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    <button type="submit" class="btn btn-primary">提交</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock content %}
 
 {% block javascripts %}
-
+<!-- Include FontAwesome for the plus icon -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
 {% endblock javascripts %}

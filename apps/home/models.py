@@ -54,6 +54,7 @@ class UserProfile(models.Model):
 
 
 class Daily(models.Model):
+    id = models.AutoField(primary_key=True)  # 默认行为是自动增长
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     date = models.DateField()
     content = models.TextField()

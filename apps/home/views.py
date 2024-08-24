@@ -11,8 +11,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template import loader
 from django.urls import reverse
 
-from .models import Project, Daily
+from .models import Project, Daily, UserProfile
 
+from datetime import date
 
 @login_required(login_url="/login/")
 def index(request):
@@ -48,12 +49,14 @@ def pages(request):
         return HttpResponse(html_template.render(context, request))
 
 
+@login_required(login_url="/login/")
 def dep_develop(request):
     projects = Project.objects.all()
     users = User.objects.all()
     return render(request, 'home/dep_develop.html', {'projects': projects, 'users': users})
 
 
+@login_required(login_url="/login/")
 def dep_develop_create_project(request):
     if request.method == 'POST':
         name = request.POST['name']
@@ -81,6 +84,7 @@ def dep_develop_create_project(request):
     return redirect('dep_develop')
 
 
+@login_required(login_url="/login/")
 def dep_develop_edit_project(request):
     if request.method == 'POST':
         project_id = request.POST['id']
@@ -103,6 +107,25 @@ def dep_develop_edit_project(request):
     return redirect('dep_develop')
 
 
+@login_required(login_url="/login/")
 def daily(request):
     daily_reports = Daily.objects.all()  # 或者你可以根据需要筛选日报
     return render(request, 'home/daily.html', {'daily_reports': daily_reports})
+
+
+@login_required(login_url="/login/")
+def daily_add(request):
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        today = date.today()
+        user_profile = UserProfile.objects.filter(user=request.user).first()
+
+        # Create or update daily report
+        Daily.objects.update_or_create(
+            user_profile=user_profile,
+            date=today,
+            defaults={'content': content}
+        )
+        return redirect('daily')  # Redirect to the daily reports page
+
+    return redirect('daily')  # In case of GET request or invalid request
