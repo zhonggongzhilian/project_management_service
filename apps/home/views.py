@@ -51,7 +51,7 @@ def pages(request):
 
 @login_required(login_url="/login/")
 def dep_develop(request):
-    projects = Project.objects.all()
+    projects = Project.objects.filter(department=1)
     users = User.objects.all()
     return render(request, 'home/dep_develop.html', {'projects': projects, 'users': users})
 
@@ -75,6 +75,7 @@ def dep_develop_create_project(request):
             end_date=end_date,
             status=status,
             priority=priority,
+            department=1
         )
         project.owner.set(owners)
         project.save()
@@ -86,6 +87,124 @@ def dep_develop_create_project(request):
 
 @login_required(login_url="/login/")
 def dep_develop_edit_project(request):
+    if request.method == 'POST':
+        project_id = request.POST['id']
+        project = get_object_or_404(Project, id=project_id)
+
+        project.name = request.POST['name']
+        project.description = request.POST.get('description', '')
+        project.start_date = request.POST['start_date']
+        project.end_date = request.POST['end_date']
+        project.status = request.POST['status']
+        project.priority = request.POST['priority']
+
+        owner_ids = request.POST.getlist('owner')
+        owners = User.objects.filter(id__in=owner_ids)
+        project.owner.set(owners)
+
+        project.save()
+        return redirect('dep_develop')
+
+    return redirect('dep_develop')
+
+
+@login_required(login_url="/login/")
+def dep_business(request):
+    projects = Project.objects.filter(department=2)
+    users = User.objects.all()
+    return render(request, 'home/dep_develop.html', {'projects': projects, 'users': users})
+
+
+@login_required(login_url="/login/")
+def dep_business_create_project(request):
+    if request.method == 'POST':
+        name = request.POST['name']
+        description = request.POST.get('description', '')
+        start_date = request.POST['start_date']
+        end_date = request.POST['end_date']
+        status = request.POST['status']
+        priority = request.POST['priority']
+        owner_ids = request.POST.getlist('owner')
+        owners = User.objects.filter(id__in=owner_ids)
+
+        project = Project.objects.create(
+            name=name,
+            description=description,
+            start_date=start_date,
+            end_date=end_date,
+            status=status,
+            priority=priority,
+            department=2
+        )
+        project.owner.set(owners)
+        project.save()
+
+        return redirect('dep_develop')  # 重定向到项目列表页面
+
+    return redirect('dep_develop')
+
+
+@login_required(login_url="/login/")
+def dep_business_edit_project(request):
+    if request.method == 'POST':
+        project_id = request.POST['id']
+        project = get_object_or_404(Project, id=project_id)
+
+        project.name = request.POST['name']
+        project.description = request.POST.get('description', '')
+        project.start_date = request.POST['start_date']
+        project.end_date = request.POST['end_date']
+        project.status = request.POST['status']
+        project.priority = request.POST['priority']
+
+        owner_ids = request.POST.getlist('owner')
+        owners = User.objects.filter(id__in=owner_ids)
+        project.owner.set(owners)
+
+        project.save()
+        return redirect('dep_develop')
+
+    return redirect('dep_develop')
+
+
+@login_required(login_url="/login/")
+def dep_tech(request):
+    projects = Project.objects.filter(department=3)
+    users = User.objects.all()
+    return render(request, 'home/dep_develop.html', {'projects': projects, 'users': users})
+
+
+@login_required(login_url="/login/")
+def dep_tech_create_project(request):
+    if request.method == 'POST':
+        name = request.POST['name']
+        description = request.POST.get('description', '')
+        start_date = request.POST['start_date']
+        end_date = request.POST['end_date']
+        status = request.POST['status']
+        priority = request.POST['priority']
+        owner_ids = request.POST.getlist('owner')
+        owners = User.objects.filter(id__in=owner_ids)
+
+        project = Project.objects.create(
+            name=name,
+            description=description,
+            start_date=start_date,
+            end_date=end_date,
+            status=status,
+            priority=priority,
+            department=3
+        )
+        project.owner.set(owners)
+        project.save()
+
+        return redirect('dep_develop')  # 重定向到项目列表页面
+
+    return redirect('dep_develop')
+
+
+@login_required(login_url="/login/")
+def dep_tech_edit_project(request):
     if request.method == 'POST':
         project_id = request.POST['id']
         project = get_object_or_404(Project, id=project_id)
@@ -129,3 +248,9 @@ def daily_add(request):
         return redirect('daily')  # Redirect to the daily reports page
 
     return redirect('daily')  # In case of GET request or invalid request
+
+
+@login_required(login_url="/login/")
+def profile(request):
+    daily_reports = Daily.objects.all()  # 或者你可以根据需要筛选日报
+    return render(request, 'home/profile.html', {'daily_reports': daily_reports})
