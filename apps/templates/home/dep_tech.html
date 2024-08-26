@@ -1,26 +1,26 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %} 研发部 {% endblock title %}
+{% block title %} 科技项目部 {% endblock title %}
 
 {% block content %}
 
 <style>
-    /* Ensure the table layout is auto */
-    .table {
-      table-layout: auto;
-    }
+  /* Ensure the table layout is auto */
+  .table {
+    table-layout: auto;
+  }
 
-    /* Allow text to wrap and add some padding for better readability */
-    .table td {
-      word-wrap: break-word;
-      white-space: normal; /* Ensure text wraps and doesn't overflow */
-    }
+  /* Allow text to wrap and add some padding for better readability */
+  .table td {
+    word-wrap: break-word;
+    white-space: normal; /* Ensure text wraps and doesn't overflow */
+  }
 
-    /* Optionally, you can also set a max-width if you want to limit the column width */
-    .table td:nth-child(2) { /* Assuming the 2nd column is 项目进展 */
-      max-width: 200px; /* Adjust this value as needed */
-      min-width: 200px;
-    }
+  /* Optionally, you can also set a max-width if you want to limit the column width */
+  .table td:nth-child(2) { /* Assuming the 2nd column is 项目进展 */
+    max-width: 200px; /* Adjust this value as needed */
+    min-width: 200px;
+  }
 </style>
 
 <!-- Header -->
@@ -29,7 +29,80 @@
         <div class="header-body">
             <div class="row align-items-center py-4">
                 <div class="col-lg-6 col-7">
-                    <h6 class="h2 text-white d-inline-block mb-0">研发部项目进度管理</h6>
+                    <h6 class="h2 text-white d-inline-block mb-0">商务部绩点申报</h6>
+                </div>
+
+                <div class="col-lg-6 col-5 text-right">
+                    <button type="button" class="btn btn-sm btn-neutral" data-toggle="modal"
+                            data-target="#gpaModal">申报绩点
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card stats -->
+            <div class="row">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card card-stats">
+                        <!-- Card body -->
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <h5 class="card-title text-uppercase text-muted mb-0">工业互联网平台</h5>
+                                    <span class="h2 font-weight-bold mb-0">BI 看板： 5 万/年</span>
+                                    <span class="h2 font-weight-bold mb-0">实施：1500 元/天</span>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="icon icon-shape bg-gradient-red text-white rounded-circle shadow">
+                                        <i class="ni ni-active-40"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card card-stats">
+                        <!-- Card body -->
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <h5 class="card-title text-uppercase text-muted mb-0">专利</h5>
+                                    <span class="h2 font-weight-bold mb-0">发明：15000/4000</span>
+                                    <span class="h2 font-weight-bold mb-0">实用： 1200</span>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="icon icon-shape bg-gradient-orange text-white rounded-circle shadow">
+                                        <i class="ni ni-chart-pie-35"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card card-stats">
+                        <!-- Card body -->
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <h5 class="card-title text-uppercase text-muted mb-0">科技项目</h5>
+                                    <span class="h2 font-weight-bold mb-0">三星：1 万</span>
+                                    <span class="h2 font-weight-bold mb-0">四星：3.5 万</span>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="icon icon-shape bg-gradient-green text-white rounded-circle shadow">
+                                        <i class="ni ni-money-coins"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row align-items-center py-4">
+                <div class="col-lg-6 col-7">
+                    <h6 class="h2 text-white d-inline-block mb-0">科技项目部项目进度管理</h6>
                 </div>
                 <div class="col-lg-6 col-5 text-right">
                     <button type="button" class="btn btn-sm btn-neutral" data-toggle="modal"
