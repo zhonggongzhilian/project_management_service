@@ -46,11 +46,11 @@ class Project(models.Model):
     end_date = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
     progress = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)  # 0.00 to 100.00
-    owner = models.ManyToManyField(User, related_name='projects', blank=True)
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    amount = models.FloatField(default=0.0)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     is_approved = models.BooleanField(default=False)
 

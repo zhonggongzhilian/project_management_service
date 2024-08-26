@@ -107,11 +107,9 @@ def dep_develop_edit_project(request):
         project.start_date = request.POST['start_date']
         project.end_date = request.POST['end_date']
         project.status = request.POST['status']
-        project.priority = request.POST['priority']
+        project.progress = request.POST['progress']
 
-        owner_ids = request.POST.getlist('owner')
-        owners = User.objects.filter(id__in=owner_ids)
-        project.owner.set(owners)
+        project.owner = request.user
 
         project.save()
         return redirect('dep_develop')

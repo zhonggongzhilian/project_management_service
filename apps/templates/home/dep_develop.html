@@ -67,7 +67,12 @@
                         </thead>
                         <tbody>
                         {% for project in projects %}
-                        <tr class="project-row">
+                        <tr class="project-row" data-id="{{ project.id }}"
+                            data-name="{{ project.name }}"
+                            data-start-date="{{ project.start_date }}"
+                            data-end-date="{{ project.end_date }}"
+                            data-status="{{ project.status }}"
+                            data-progress="{{ project.progress }}">
                             <td>{{ project.name }}</td>
                             <td>{{ project.description|linebreaksbr }}</td>
                             <td>
@@ -80,11 +85,7 @@
                             <td>{{ project.end_date }}</td>
                             <td>{{ project.get_status_display }}</td>
                             <td>{{ project.progress }}%</td>
-                            <td>
-                                {% for user in project.owner.all %}
-                                {{ user.username }}{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                            </td>
+                            <td>{{ project.owner }}</td>
                             <td>
                                 {% if project.end_date < today %}
                                 ⚠️已逾期
@@ -116,7 +117,8 @@
 </div>
 
 <!-- History Modal -->
-<div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel" aria-hidden="true">
+<div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -128,13 +130,13 @@
             <div class="modal-body">
                 <table class="table align-items-center table-flush">
                     <thead class="thead-light">
-                        <tr>
-                            <th scope="col">日期</th>
-                            <th scope="col">描述</th>
-                        </tr>
+                    <tr>
+                        <th scope="col">日期</th>
+                        <th scope="col">描述</th>
+                    </tr>
                     </thead>
                     <tbody id="historyTableBody">
-                        <!-- Historical data will be injected here via JavaScript -->
+                    <!-- Historical data will be injected here via JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -237,20 +239,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="editPriority">优先级</label>
-                        <select class="form-control" id="editPriority" name="priority" required>
-                            <option value="low">低</option>
-                            <option value="medium">中</option>
-                            <option value="high">高</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editOwner">负责人</label>
-                        <select multiple class="form-control" id="editOwner" name="owner">
-                            {% for user in users %}
-                            <option value="{{ user.id }}">{{ user.username }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="editProgress">进度 (%)</label>
+                        <input type="number" class="form-control" id="editProgress" name="progress" required>
                     </div>
                     <button type="submit" class="btn btn-primary">保存修改</button>
                 </form>
@@ -258,10 +248,34 @@
         </div>
     </div>
 </div>
-
 {% endblock content %}
 
 {% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#editProjectModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var row = button.closest('tr'); // Get the row containing the button
+
+            // Extract data from the row
+            var projectId = row.data('id');
+            var projectName = row.data('name');
+            var startDate = row.data('start-date');
+            var endDate = row.data('end-date');
+            var status = row.data('status');
+            var progress = row.data('progress');
+
+            // Populate the modal form with the project data
+            $('#editProjectId').val(projectId);
+            $('#editProjectName').val(projectName);
+            $('#editStartDate').val(startDate);
+            $('#editEndDate').val(endDate);
+            $('#editStatus').val(status);
+            $('#editProgress').val(progress);
+        });
+    });
+</script>
+
 <script>
     $(document).ready(function() {
       $('.project-row').on('click', function() {
@@ -289,34 +303,34 @@
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    $('#historyModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget); // Button that triggered the modal
-        var projectId = button.data('project-id'); // Extract info from data-* attributes
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#historyModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var projectId = button.data('project-id'); // Extract info from data-* attributes
 
-        var modal = $(this);
+            var modal = $(this);
 
-        // Fetch historical data for the selected project
-        $.ajax({
-            url: '{% url "get_daily_items" %}', // Adjust URL as needed
-            data: {
-                project_id: projectId
-            },
-            success: function (data) {
-                var tableBody = modal.find('#historyTableBody');
-                tableBody.empty(); // Clear existing data
+            // Fetch historical data for the selected project
+            $.ajax({
+                url: '{% url "get_daily_items" %}', // Adjust URL as needed
+                data: {
+                    project_id: projectId
+                },
+                success: function (data) {
+                    var tableBody = modal.find('#historyTableBody');
+                    tableBody.empty(); // Clear existing data
 
-                data.forEach(function (item) {
-                    tableBody.append(`
-                        <tr>
-                            <td>${item.date}</td>
-                            <td>${item.description}</td>
-                        </tr>
-                    `);
-                });
-            }
+                    data.forEach(function (item) {
+                        tableBody.append(`
+                            <tr>
+                                <td>${item.date}</td>
+                                <td>${item.description}</td>
+                            </tr>
+                        `);
+                    });
+                }
+            });
         });
     });
-});
 </script>
 {% endblock javascripts %}
