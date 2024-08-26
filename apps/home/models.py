@@ -42,6 +42,7 @@ class Project(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
+    is_approved = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -68,3 +69,13 @@ class Daily(models.Model):
 
     def __str__(self):
         return f"Report by {self.user_profile.user.username} on {self.date}"
+
+
+class GPA(models.Model):
+    id = models.AutoField(primary_key=True)  # 默认行为是自动增长
+    item = models.CharField(max_length=255, blank=True, null=True)
+    desc = models.CharField(max_length=255, blank=True, null=True)
+    value = models.FloatField(default=0.0)
+    is_approved = models.BooleanField(default=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+

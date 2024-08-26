@@ -3,17 +3,21 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
+from datetime import date
+
 from django import template
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
 
-from .models import Project, Daily, UserProfile
+from .models import Daily, GPA
+from .models import Project, UserProfile
 
-from datetime import date
 
 @login_required(login_url="/login/")
 def index(request):
@@ -112,7 +116,7 @@ def dep_develop_edit_project(request):
 def dep_business(request):
     projects = Project.objects.filter(department=2)
     users = User.objects.all()
-    return render(request, 'home/dep_develop.html', {'projects': projects, 'users': users})
+    return render(request, 'home/dep_business.html', {'projects': projects, 'users': users})
 
 
 @login_required(login_url="/login/")
@@ -139,9 +143,9 @@ def dep_business_create_project(request):
         project.owner.set(owners)
         project.save()
 
-        return redirect('dep_develop')  # 重定向到项目列表页面
+        return redirect('dep_business')  # 重定向到项目列表页面
 
-    return redirect('dep_develop')
+    return redirect('dep_business')
 
 
 @login_required(login_url="/login/")
@@ -162,16 +166,16 @@ def dep_business_edit_project(request):
         project.owner.set(owners)
 
         project.save()
-        return redirect('dep_develop')
+        return redirect('dep_business')
 
-    return redirect('dep_develop')
+    return redirect('dep_business')
 
 
 @login_required(login_url="/login/")
 def dep_tech(request):
     projects = Project.objects.filter(department=3)
     users = User.objects.all()
-    return render(request, 'home/dep_develop.html', {'projects': projects, 'users': users})
+    return render(request, 'home/dep_tech.html', {'projects': projects, 'users': users})
 
 
 @login_required(login_url="/login/")
@@ -198,9 +202,9 @@ def dep_tech_create_project(request):
         project.owner.set(owners)
         project.save()
 
-        return redirect('dep_develop')  # 重定向到项目列表页面
+        return redirect('dep_tech')  # 重定向到项目列表页面
 
-    return redirect('dep_develop')
+    return redirect('dep_tech')
 
 
 @login_required(login_url="/login/")
@@ -221,9 +225,9 @@ def dep_tech_edit_project(request):
         project.owner.set(owners)
 
         project.save()
-        return redirect('dep_develop')
+        return redirect('dep_tech')
 
-    return redirect('dep_develop')
+    return redirect('dep_tech')
 
 
 @login_required(login_url="/login/")
@@ -253,4 +257,31 @@ def daily_add(request):
 @login_required(login_url="/login/")
 def profile(request):
     daily_reports = Daily.objects.all()  # 或者你可以根据需要筛选日报
-    return render(request, 'home/profile.html', {'daily_reports': daily_reports})
+    gpas = GPA.objects.filter(user=request.user)  # 查询当前用户的所有 GPA 数据
+    return render(request, 'home/profile.html', {
+        'daily_reports': daily_reports,
+        'gpas': gpas,
+    })
+
+
+@login_required
+def submit_gpa(request):
+    if request.method == 'POST':
+        item = request.POST.get('item')
+        value = float(request.POST.get('value'))
+        desc = request.POST.get('desc')
+
+        # 创建新的 GPA 对象
+        gpa = GPA(
+            item=item,
+            value=value,
+            desc=desc,
+            is_approved=False,
+            user=request.user
+        )
+        gpa.save()
+
+        # 你可以返回 JSON 响应以处理 AJAX 请求
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False})

@@ -4,85 +4,106 @@
 
 {% block content %}
 
-<div class="header pb-6 d-flex align-items-center" 
-     style="min-height: 500px; background-image: url(/static/assets/img/theme/profile-cover.jpg); background-size: cover; background-position: center top;">
-  <!-- Mask -->
-  <span class="mask bg-gradient-default opacity-8"></span>
-  <!-- Header container -->
-  <div class="container-fluid d-flex align-items-center">
-    <div class="row">
-      <div class="col-lg-7 col-md-10">
-        <h1 class="display-2 text-white"> 
-          你好，{{ request.user.username }}！
-        </h1>
-        <p class="text-white mt-0 mb-5">欢迎登录！又是活力满满的一天呢！</p>
-        <a href="#!" class="btn btn-neutral">修改账户信息</a>
-      </div>
-    </div>
-  </div>
+<style>
+    .display-2 {
+      font-size: 2rem; /* Adjust the size as needed */
+      white-space: nowrap; /* Prevents the text from wrapping to a new line */
+    }
+</style>
+
+<div class="header pb-6 d-flex align-items-center"
+     style="min-height: 200px; background-image: url(/static/assets/img/theme/profile-cover.jpg); background-size: cover; background-position: center top;">
+    <!-- Mask -->
+    <span class="mask bg-gradient-default opacity-8"></span>
 </div>
 <!-- Page content -->
 <div class="container-fluid mt--6">
-  <div class="row">
-    <div class="col-xl-4 order-xl-2">
-      <div class="card card-profile">
-        <img src="/static/assets/img/theme/img-1-1000x600.jpg" alt="Image placeholder" class="card-img-top">
-        <div class="row justify-content-center">
-          <div class="col-lg-3 order-lg-2">
-            <div class="card-profile-image">
-              <a href="#">
-                <img src="/static/assets/img/theme/team-4.jpg" class="rounded-circle">
-              </a>
-            </div>
-          </div>
-        </div>
-        <div class="card-header text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4">
-          <div class="d-flex justify-content-between">
-            <a href="#" class="btn btn-sm btn-info  mr-4 ">提交绩点</a>
-            <a href="#" class="btn btn-sm btn-default float-right">Message</a>
-          </div>
-        </div>
-        <div class="card-body pt-0">
-          <div class="row">
-            <div class="col">
-              <div class="card-profile-stats d-flex justify-content-center">
-                <div>
-                  <span class="heading">22</span>
-                  <span class="description">Friends</span>
+    <div class="row justify-content-center"> <!-- Center the row -->
+        <div class="col-xl-4 order-xl-2"> <!-- This column will center the card -->
+            <div class="card card-profile">
+                <img src="/static/assets/img/theme/img-1-1000x600.jpg" alt="Image placeholder" class="card-img-top">
+                <div class="row justify-content-center">
+                    <div class="col-lg-3 order-lg-2">
+                        <div class="card-profile-image">
+                            <a href="#">
+                                <img src="/static/assets/img/theme/team-4.jpg" class="rounded-circle">
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                  <span class="heading">10</span>
-                  <span class="description">Photos</span>
+                <div class="card-header text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4">
+                    <div class="d-flex justify-content-between">
+                        <a href="#" class="btn btn-sm btn-info  mr-4">提交绩点</a>
+                        <a href="#" class="btn btn-sm btn-default float-right">反馈问题</a>
+                    </div>
                 </div>
-                <div>
-                  <span class="heading">89</span>
-                  <span class="description">Comments</span>
+                <div class="card-body pt-0">
+                    <div class="row">
+                        <div class="col">
+                            <div class="card-profile-stats d-flex justify-content-center">
+                                <div>
+                                    <span class="heading">{{ request.user.userprofile.gpa}}</span>
+                                    <span class="description">本月绩点</span>
+                                </div>
+                                <div>
+                                    <span class="heading">280</span>
+                                    <span class="description">本月工时</span>
+                                </div>
+                                <div>
+                                    <span class="heading">13</span>
+                                    <span class="description">本月日报</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <h5 class="h3">
+                            {{ request.user.username }} - {{ request.user.userprofile.department.name }}
+                        </h5>
+                        <div class="h5 font-weight-300">
+                            {{ request.user.email }}
+                        </div>
+                    </div>
+                    <!-- GPA List -->
+                    <div class="mt-4">
+                        <h4 class="mb-4">GPA 列表</h4>
+                        <table class="table align-items-center table-flush">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col">项目名称</th>
+                                <th scope="col">描述</th>
+                                <th scope="col">值</th>
+                                <th scope="col">状态</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for gpa in gpas %}
+                            <tr>
+                                <td>{{ gpa.item }}</td>
+                                <td>{{ gpa.desc }}</td>
+                                <td>{{ gpa.value }}</td>
+                                <td>
+                                    {% if gpa.is_approved %}
+                                    <span class="badge badge-success">已批准</span>
+                                    {% else %}
+                                    <span class="badge badge-secondary">未批准</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">没有可用的 GPA 数据。</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-              </div>
             </div>
-          </div>
-          <div class="text-center">
-            <h5 class="h3">
-              {{ request.user.username }}
-            </h5>
-            <div class="h5 font-weight-300">
-              {{ request.user.email }}
-            </div>
-            <div class="h5 mt-4">
-              <i class="ni business_briefcase-24 mr-2"></i>Solution Manager - Creative Tim Officer
-            </div>
-            <div>
-              <i class="ni education_hat mr-2"></i>University of Computer Science
-            </div>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
-
 </div>
-
 {% endblock content %}
 
-<!-- Specific JS goes HERE --> 
+<!-- Specific JS goes HERE -->
 {% block javascripts %}{% endblock javascripts %}
