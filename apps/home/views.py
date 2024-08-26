@@ -21,7 +21,62 @@ from .models import Project, ProjectType
 
 @login_required(login_url="/login/")
 def index(request):
-    context = {'segment': 'index'}
+    users = User.objects.all()
+    user_amount = len(users)
+    projects = Project.objects.all()
+    project_amount = len(projects)
+
+    total_amount = 0
+    for project in projects:
+        if project.status == 'completed':
+            total_amount += project.amount
+
+    dailies = Daily.objects.all()
+    daily_amount = len(dailies)
+
+    from django.utils import timezone
+
+    # 获取今天的日期
+    today = timezone.now().date()
+
+    # 计算今天的日报数量
+    dailies_today = Daily.objects.filter(date=today)
+    daily_amount_today = len(dailies_today)
+
+    project_data = []
+    for project in projects:
+        start_date = project.start_date
+        end_date = project.end_date
+        total_days = (end_date - start_date).days
+        elapsed_days = (today - start_date).days
+        progress_percentage = (elapsed_days / total_days) * 100 if total_days > 0 else 0
+
+        project_data.append({
+            'type': project.project_type.name,
+            'name': project.name,
+            'responsible': project.owner,
+            'progress': round(progress_percentage, 2),
+        })
+
+    from django.db.models import Sum
+    sales_data = []
+    for user in users:
+        total_amount = Project.objects.filter(owner=user).aggregate(total_amount=Sum('amount'))['total_amount'] or 0
+        sales_data.append({
+            'username': user.username,
+            'total_amount': total_amount,
+        })
+
+    # 按总销售额排序
+    sales_data.sort(key=lambda x: x['total_amount'], reverse=True)
+
+    context = {'user_amount': user_amount,
+               'project_amount': project_amount,
+               'total_amount': total_amount,
+               'daily_amount': daily_amount,
+               'daily_amount_today': daily_amount_today,
+               'project_data': project_data,
+               'sales_data': sales_data, }
 
     html_template = loader.get_template('home/index.html')
     return HttpResponse(html_template.render(context, request))
@@ -61,7 +116,8 @@ def dep_develop(request):
     for project in projects:
         daily_item = DailyItem.objects.filter(project=project).first()
         project.description = daily_item.description if daily_item else ""
-    return render(request, 'home/dep_develop.html', {'projects': projects, 'users': users, 'project_types': project_types})
+    return render(request, 'home/dep_develop.html',
+                  {'projects': projects, 'users': users, 'project_types': project_types})
 
 
 @login_required(login_url="/login/")
@@ -126,7 +182,8 @@ def dep_business(request):
     for project in projects:
         daily_item = DailyItem.objects.filter(project=project).first()
         project.description = daily_item.description if daily_item else ""
-    return render(request, 'home/dep_business.html', {'projects': projects, 'users': users, 'project_types': project_types})
+    return render(request, 'home/dep_business.html',
+                  {'projects': projects, 'users': users, 'project_types': project_types})
 
 
 @login_required(login_url="/login/")

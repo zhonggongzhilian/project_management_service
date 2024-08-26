@@ -19,7 +19,7 @@ class Department(models.Model):
 
 class ProjectType(models.Model):
     id = models.AutoField(primary_key=True)  # 默认行为是自动增长
-    name = models.CharField(max_length=255, blank=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     description = models.CharField(max_length=255, blank=True, null=True)
 
