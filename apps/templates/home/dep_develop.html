@@ -5,22 +5,22 @@
 {% block content %}
 
 <style>
-  /* Ensure the table layout is auto */
-  .table {
-    table-layout: auto;
-  }
+    /* Ensure the table layout is auto */
+    .table {
+      table-layout: auto;
+    }
 
-  /* Allow text to wrap and add some padding for better readability */
-  .table td {
-    word-wrap: break-word;
-    white-space: normal; /* Ensure text wraps and doesn't overflow */
-  }
+    /* Allow text to wrap and add some padding for better readability */
+    .table td {
+      word-wrap: break-word;
+      white-space: normal; /* Ensure text wraps and doesn't overflow */
+    }
 
-  /* Optionally, you can also set a max-width if you want to limit the column width */
-  .table td:nth-child(2) { /* Assuming the 2nd column is 项目进展 */
-    max-width: 200px; /* Adjust this value as needed */
-    min-width: 200px;
-  }
+    /* Optionally, you can also set a max-width if you want to limit the column width */
+    .table td:nth-child(2) { /* Assuming the 2nd column is 项目进展 */
+      max-width: 200px; /* Adjust this value as needed */
+      min-width: 200px;
+    }
 </style>
 
 <!-- Header -->
@@ -55,24 +55,27 @@
                         <tr>
                             <th scope="col">项目名称</th>
                             <th scope="col">项目进展</th>
+                            <th scope="col">历史进展</th>
                             <th scope="col">开始日期</th>
                             <th scope="col">结束日期</th>
                             <th scope="col">状态</th>
                             <th scope="col">进度</th>
                             <th scope="col">负责人</th>
-                            <th scope="col">优先级</th>
+                            <th scope="col">进度预警</th>
+                            <th scope="col">操作</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for project in projects %}
-                        <tr class="project-row" data-toggle="modal" data-target="#editProjectModal"
-                            data-id="{{ project.id }}" data-name="{{ project.name }}"
-                            data-description="{{ project.description }}" data-start_date="{{ project.start_date }}"
-                            data-end_date="{{ project.end_date }}" data-status="{{ project.status }}"
-                            data-priority="{{ project.priority }}"
-                            data-owners="{{ project.owner.all|join:',' }}">
+                        <tr class="project-row">
                             <td>{{ project.name }}</td>
                             <td>{{ project.description|linebreaksbr }}</td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal"
+                                        data-target="#historyModal" data-project-id="{{ project.id }}">
+                                    查看历史进度
+                                </button>
+                            </td>
                             <td>{{ project.start_date }}</td>
                             <td>{{ project.end_date }}</td>
                             <td>{{ project.get_status_display }}</td>
@@ -82,11 +85,23 @@
                                 {{ user.username }}{% if not forloop.last %}, {% endif %}
                                 {% endfor %}
                             </td>
-                            <td>{{ project.get_priority_display }}</td>
+                            <td>
+                                {% if project.end_date < today %}
+                                ⚠️已逾期
+                                {% else %}
+                                进度正常
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal"
+                                        data-target="#editProjectModal" data-project-id="{{ project.id }}">
+                                    修改项目信息
+                                </button>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center">没有项目</td>
+                            <td colspan="9" class="text-center">没有项目</td>
                         </tr>
                         {% endfor %}
                         </tbody>
@@ -98,6 +113,33 @@
 
     {% include "includes/footer.html" %}
 
+</div>
+
+<!-- History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historyModalLabel">项目历史进度</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table align-items-center table-flush">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">日期</th>
+                            <th scope="col">描述</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Historical data will be injected here via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- New Project Modal -->
@@ -117,10 +159,6 @@
                     <div class="form-group">
                         <label for="projectName">项目名称</label>
                         <input type="text" class="form-control" id="projectName" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="projectDescription">项目进展</label>
-                        <textarea class="form-control" id="projectDescription" name="description"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="startDate">开始日期</label>
@@ -180,10 +218,6 @@
                     <div class="form-group">
                         <label for="editProjectName">项目名称</label>
                         <input type="text" class="form-control" id="editProjectName" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editProjectDescription">项目进展</label>
-                        <textarea class="form-control" id="editProjectDescription" name="description"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="editStartDate">开始日期</label>
@@ -252,5 +286,37 @@
         $('#editOwner').trigger('change'); // For select2 or similar plugins if used
       });
     });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    $('#historyModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var projectId = button.data('project-id'); // Extract info from data-* attributes
+
+        var modal = $(this);
+
+        // Fetch historical data for the selected project
+        $.ajax({
+            url: '{% url "get_daily_items" %}', // Adjust URL as needed
+            data: {
+                project_id: projectId
+            },
+            success: function (data) {
+                var tableBody = modal.find('#historyTableBody');
+                tableBody.empty(); // Clear existing data
+
+                data.forEach(function (item) {
+                    tableBody.append(`
+                        <tr>
+                            <td>${item.date}</td>
+                            <td>${item.description}</td>
+                        </tr>
+                    `);
+                });
+            }
+        });
+    });
+});
 </script>
 {% endblock javascripts %}

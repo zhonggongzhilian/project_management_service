@@ -87,6 +87,7 @@ class DailyItem(models.Model):
     project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     daily = models.ForeignKey(Daily, on_delete=models.CASCADE, related_name='items')
+    date = models.DateField(blank=True, null=True)
 
 
 class GPA(models.Model):

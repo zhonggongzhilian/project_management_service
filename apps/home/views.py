@@ -16,7 +16,7 @@ from django.template import loader
 from django.urls import reverse
 
 from .models import Daily, GPA, DailyItem
-from .models import Project, UserProfile
+from .models import Project
 
 
 @login_required(login_url="/login/")
@@ -57,14 +57,23 @@ def pages(request):
 def dep_develop(request):
     projects = Project.objects.filter(department=1)
     users = User.objects.all()
+    for project in projects:
+        daily_item = DailyItem.objects.filter(project=project).first()
+        project.description = daily_item.description
     return render(request, 'home/dep_develop.html', {'projects': projects, 'users': users})
+
+
+@login_required(login_url="/login/")
+def get_daily_items(request):
+    project_id = request.GET.get('project_id')
+    daily_items = DailyItem.objects.filter(project_id=project_id).values('date', 'description')
+    return JsonResponse(list(daily_items), safe=False)
 
 
 @login_required(login_url="/login/")
 def dep_develop_create_project(request):
     if request.method == 'POST':
         name = request.POST['name']
-        description = request.POST.get('description', '')
         start_date = request.POST['start_date']
         end_date = request.POST['end_date']
         status = request.POST['status']
@@ -74,7 +83,6 @@ def dep_develop_create_project(request):
 
         project = Project.objects.create(
             name=name,
-            description=description,
             start_date=start_date,
             end_date=end_date,
             status=status,
@@ -96,7 +104,6 @@ def dep_develop_edit_project(request):
         project = get_object_or_404(Project, id=project_id)
 
         project.name = request.POST['name']
-        project.description = request.POST.get('description', '')
         project.start_date = request.POST['start_date']
         project.end_date = request.POST['end_date']
         project.status = request.POST['status']
@@ -116,6 +123,12 @@ def dep_develop_edit_project(request):
 def dep_business(request):
     projects = Project.objects.filter(department=2)
     users = User.objects.all()
+    for project in projects:
+        daily_item = DailyItem.objects.filter(project=project).first()
+        project.description = daily_item.description
+    for project in projects:
+        daily_item = DailyItem.objects.filter(project=project).first()
+        project.description = daily_item.description
     return render(request, 'home/dep_business.html', {'projects': projects, 'users': users})
 
 
@@ -123,7 +136,6 @@ def dep_business(request):
 def dep_business_create_project(request):
     if request.method == 'POST':
         name = request.POST['name']
-        description = request.POST.get('description', '')
         start_date = request.POST['start_date']
         end_date = request.POST['end_date']
         status = request.POST['status']
@@ -133,7 +145,6 @@ def dep_business_create_project(request):
 
         project = Project.objects.create(
             name=name,
-            description=description,
             start_date=start_date,
             end_date=end_date,
             status=status,
@@ -155,7 +166,6 @@ def dep_business_edit_project(request):
         project = get_object_or_404(Project, id=project_id)
 
         project.name = request.POST['name']
-        project.description = request.POST.get('description', '')
         project.start_date = request.POST['start_date']
         project.end_date = request.POST['end_date']
         project.status = request.POST['status']
@@ -175,6 +185,9 @@ def dep_business_edit_project(request):
 def dep_tech(request):
     projects = Project.objects.filter(department=3)
     users = User.objects.all()
+    for project in projects:
+        daily_item = DailyItem.objects.filter(project=project).first()
+        project.description = daily_item.description
     return render(request, 'home/dep_tech.html', {'projects': projects, 'users': users})
 
 
@@ -182,7 +195,6 @@ def dep_tech(request):
 def dep_tech_create_project(request):
     if request.method == 'POST':
         name = request.POST['name']
-        description = request.POST.get('description', '')
         start_date = request.POST['start_date']
         end_date = request.POST['end_date']
         status = request.POST['status']
@@ -192,7 +204,6 @@ def dep_tech_create_project(request):
 
         project = Project.objects.create(
             name=name,
-            description=description,
             start_date=start_date,
             end_date=end_date,
             status=status,
@@ -214,7 +225,6 @@ def dep_tech_edit_project(request):
         project = get_object_or_404(Project, id=project_id)
 
         project.name = request.POST['name']
-        project.description = request.POST.get('description', '')
         project.start_date = request.POST['start_date']
         project.end_date = request.POST['end_date']
         project.status = request.POST['status']
@@ -247,6 +257,15 @@ def daily_add(request):
         projects = request.POST.getlist('projects[]')
         descriptions = request.POST.getlist('descriptions[]')
 
+        # Check if there's already a Daily entry for today
+        existing_daily = Daily.objects.filter(user_profile=request.user.userprofile, date=today).first()
+
+        if existing_daily:
+            # Delete existing DailyItems
+            DailyItem.objects.filter(daily=existing_daily).delete()
+            # Delete the existing Daily entry
+            existing_daily.delete()
+
         # Create Daily instance
         daily = Daily.objects.create(
             user_profile=request.user.userprofile,
@@ -260,7 +279,8 @@ def daily_add(request):
             DailyItem.objects.create(
                 daily=daily,
                 project=project,
-                description=description
+                description=description,
+                date=today
             )
         return redirect('daily')  # Redirect to the daily reports page
 
