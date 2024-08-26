@@ -31,12 +31,6 @@
                 <div class="col-lg-6 col-7">
                     <h6 class="h2 text-white d-inline-block mb-0">商务部绩点申报</h6>
                 </div>
-
-                <div class="col-lg-6 col-5 text-right">
-                    <button type="button" class="btn btn-sm btn-neutral" data-toggle="modal"
-                            data-target="#gpaModal">申报绩点
-                    </button>
-                </div>
             </div>
 
             <!-- Card stats -->
@@ -231,7 +225,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form method="post" action="{% url 'dep_develop_create_project' %}">
+                <form method="post" action="{% url 'dep_tech_create_project' %}">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="projectName">项目名称</label>
@@ -281,7 +275,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form method="post" action="{% url 'dep_develop_edit_project' %}">
+                <form method="post" action="{% url 'dep_tech_edit_project' %}">
                     {% csrf_token %}
                     <input type="hidden" id="editProjectId" name="id">
                     <div class="form-group">

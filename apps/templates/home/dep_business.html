@@ -33,12 +33,6 @@
                 <div class="col-lg-6 col-7">
                     <h6 class="h2 text-white d-inline-block mb-0">商务部绩点申报</h6>
                 </div>
-
-                <div class="col-lg-6 col-5 text-right">
-                    <button type="button" class="btn btn-sm btn-neutral" data-toggle="modal"
-                            data-target="#gpaModal">申报绩点
-                    </button>
-                </div>
             </div>
 
             <!-- Card stats -->
@@ -103,7 +97,7 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col">
-                                    <h5 class="card-title text-uppercase text-muted mb-0">其他项目（含无人机）</h5>
+                                    <h5 class="card-title text-uppercase text-muted mb-0">政府大项目（含无人机）</h5>
                                     <span class="h2 font-weight-bold mb-0">每万元 * 30%</span>
                                 </div>
                                 <div class="col-auto">
@@ -145,12 +139,12 @@
                         <tr>
                             <th scope="col">项目类型</th>
                             <th scope="col">项目名称</th>
+                            <th scope="col">项目金额</th>
                             <th scope="col">项目进展</th>
                             <th scope="col">历史进展</th>
                             <th scope="col">开始日期</th>
                             <th scope="col">结束日期</th>
                             <th scope="col">状态</th>
-                            <th scope="col">进度</th>
                             <th scope="col">负责人</th>
                             <th scope="col">进度预警</th>
                             <th scope="col">操作</th>
@@ -162,10 +156,10 @@
                             data-name="{{ project.name }}"
                             data-start-date="{{ project.start_date }}"
                             data-end-date="{{ project.end_date }}"
-                            data-status="{{ project.status }}"
-                            data-progress="{{ project.progress }}">
+                            data-status="{{ project.status }}"">
                             <td>{{ project.project_type.name }}</td>
                             <td>{{ project.name }}</td>
+                            <td>{{ project.amount }}</td>
                             <td>{{ project.description|linebreaksbr }}</td>
                             <td>
                                 <button type="button" class="btn btn-info btn-sm" data-toggle="modal"
@@ -176,7 +170,6 @@
                             <td>{{ project.start_date }}</td>
                             <td>{{ project.end_date }}</td>
                             <td>{{ project.get_status_display }}</td>
-                            <td>{{ project.progress }}%</td>
                             <td>{{ project.owner }}</td>
                             <td>
                                 {% if project.end_date < today %}
@@ -248,11 +241,15 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form method="post" action="{% url 'dep_develop_create_project' %}">
+                <form method="post" action="{% url 'dep_business_create_project' %}">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="projectName">项目名称</label>
                         <input type="text" class="form-control" id="projectName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="projectName">项目金额（元）</label>
+                        <input type="number" class="form-control" id="projectAmount" name="amount" required>
                     </div>
                     <div class="form-group">
                         <label for="projectType">项目类型</label>
@@ -298,12 +295,16 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form method="post" action="{% url 'dep_develop_edit_project' %}">
+                <form method="post" action="{% url 'dep_business_edit_project' %}">
                     {% csrf_token %}
                     <input type="hidden" id="editProjectId" name="id">
                     <div class="form-group">
                         <label for="editProjectName">项目名称</label>
                         <input type="text" class="form-control" id="editProjectName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProjectName">项目金额（元）</label>
+                        <input type="number" class="form-control" id="editProjectAmount" name="amount" required>
                     </div>
                     <div class="form-group">
                         <label for="editStartDate">开始日期</label>
@@ -321,10 +322,6 @@
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editProgress">进度 (%)</label>
-                        <input type="number" class="form-control" id="editProgress" name="progress" required>
                     </div>
                     <button type="submit" class="btn btn-primary">保存修改</button>
                 </form>
@@ -347,7 +344,7 @@
             var startDate = row.data('start-date');
             var endDate = row.data('end-date');
             var status = row.data('status');
-            var progress = row.data('progress');
+            var amount = row.data('amount');
 
             // Populate the modal form with the project data
             $('#editProjectId').val(projectId);
@@ -355,7 +352,7 @@
             $('#editStartDate').val(startDate);
             $('#editEndDate').val(endDate);
             $('#editStatus').val(status);
-            $('#editProgress').val(progress);
+            $('#editAmount').val(amount);
         });
     });
 </script>
@@ -371,6 +368,7 @@
         var status = $(this).data('status');
         var priority = $(this).data('priority');
         var project_type = $(this).data('project_type');
+        var amount = $(this).data('amount');
 
         $('#editProjectId').val(projectId);
         $('#editProjectName').val(projectName);
@@ -380,6 +378,7 @@
         $('#editStatus').val(status);
         $('#editPriority').val(priority);
         $('#editProjectType').val(project_type);
+        $('#editAmount').val(amount);
       });
     });
 </script>
