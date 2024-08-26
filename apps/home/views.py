@@ -15,7 +15,7 @@ from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
 
-from .models import Daily, GPA
+from .models import Daily, GPA, DailyItem
 from .models import Project, UserProfile
 
 
@@ -233,22 +233,35 @@ def dep_tech_edit_project(request):
 @login_required(login_url="/login/")
 def daily(request):
     daily_reports = Daily.objects.all()  # 或者你可以根据需要筛选日报
-    return render(request, 'home/daily.html', {'daily_reports': daily_reports})
+    projects = Project.objects.filter(owner=request.user)
+    return render(request, 'home/daily.html', {'daily_reports': daily_reports,
+                                               'projects': projects})
 
 
 @login_required(login_url="/login/")
 def daily_add(request):
     if request.method == 'POST':
-        content = request.POST.get('content')
         today = date.today()
-        user_profile = UserProfile.objects.filter(user=request.user).first()
 
-        # Create or update daily report
-        Daily.objects.update_or_create(
-            user_profile=user_profile,
-            date=today,
-            defaults={'content': content}
+        content = request.POST.get('content')
+        projects = request.POST.getlist('projects[]')
+        descriptions = request.POST.getlist('descriptions[]')
+
+        # Create Daily instance
+        daily = Daily.objects.create(
+            user_profile=request.user.userprofile,
+            date=today,  # Or any other date
+            content=content
         )
+
+        # Create DailyItems
+        for project_id, description in zip(projects, descriptions):
+            project = Project.objects.get(id=project_id)
+            DailyItem.objects.create(
+                daily=daily,
+                project=project,
+                description=description
+            )
         return redirect('daily')  # Redirect to the daily reports page
 
     return redirect('daily')  # In case of GET request or invalid request

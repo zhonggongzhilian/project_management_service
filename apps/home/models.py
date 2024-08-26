@@ -10,10 +10,18 @@ from django.db import models
 
 
 class Department(models.Model):
+    id = models.AutoField(primary_key=True)  # 默认行为是自动增长
     name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
+
+
+class ProjectType(models.Model):
+    id = models.AutoField(primary_key=True)  # 默认行为是自动增长
+    name = models.CharField(max_length=255, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
 
 
 class Project(models.Model):
@@ -30,7 +38,9 @@ class Project(models.Model):
         ('high', '高'),
     ]
 
+    id = models.AutoField(primary_key=True)  # 默认行为是自动增长
     name = models.CharField(max_length=255)
+    project_type = models.ForeignKey(ProjectType, on_delete=models.SET_NULL, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -49,6 +59,7 @@ class Project(models.Model):
 
 
 class UserProfile(models.Model):
+    id = models.AutoField(primary_key=True)  # 默认行为是自动增长
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     gpa = models.FloatField(default=0.0)
@@ -71,6 +82,13 @@ class Daily(models.Model):
         return f"Report by {self.user_profile.user.username} on {self.date}"
 
 
+class DailyItem(models.Model):
+    id = models.AutoField(primary_key=True)  # 默认行为是自动增长
+    project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    daily = models.ForeignKey(Daily, on_delete=models.CASCADE, related_name='items')
+
+
 class GPA(models.Model):
     id = models.AutoField(primary_key=True)  # 默认行为是自动增长
     item = models.CharField(max_length=255, blank=True, null=True)
@@ -78,4 +96,3 @@ class GPA(models.Model):
     value = models.FloatField(default=0.0)
     is_approved = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-
