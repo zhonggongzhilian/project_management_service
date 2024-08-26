@@ -53,6 +53,7 @@
                     <table class="table align-items-center table-flush">
                         <thead class="thead-light">
                         <tr>
+                            <th scope="col">项目类型</th>
                             <th scope="col">项目名称</th>
                             <th scope="col">项目进展</th>
                             <th scope="col">历史进展</th>
@@ -73,6 +74,7 @@
                             data-end-date="{{ project.end_date }}"
                             data-status="{{ project.status }}"
                             data-progress="{{ project.progress }}">
+                            <td>{{ project.project_type.name }}</td>
                             <td>{{ project.name }}</td>
                             <td>{{ project.description|linebreaksbr }}</td>
                             <td>

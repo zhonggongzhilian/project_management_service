@@ -19,14 +19,13 @@
 <!-- Page content -->
 <div class="container-fluid mt--6">
     <div class="row justify-content-center"> <!-- Center the row -->
-        <div class="col-xl-4 order-xl-2"> <!-- This column will center the card -->
+        <div class="col-xl-12 order-xl-2"> <!-- This column will center the card -->
             <div class="card card-profile">
-                <img src="/static/assets/img/theme/img-1-1000x600.jpg" alt="Image placeholder" class="card-img-top">
                 <div class="row justify-content-center">
                     <div class="col-lg-3 order-lg-2">
                         <div class="card-profile-image">
                             <a href="#">
-                                <img src="/static/assets/img/theme/team-4.jpg" class="rounded-circle">
+                                <img src="/static/assets/img/theme/team-1.jpg" class="rounded-circle">
                             </a>
                         </div>
                     </div>
@@ -64,35 +63,61 @@
                             {{ request.user.email }}
                         </div>
                     </div>
-                    <!-- GPA List -->
+                    <!-- Incomplete Projects -->
+                    {% if request.user.is_superuser %}
                     <div class="mt-4">
-                        <h4 class="mb-4">GPA 列表</h4>
+                        <h4 class="mb-4">待审批项目</h4>
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                             <tr>
                                 <th scope="col">项目名称</th>
                                 <th scope="col">描述</th>
-                                <th scope="col">值</th>
+                                <th scope="col">开始日期</th>
+                                <th scope="col">结束日期</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for project in incomplete_projects %}
+                            <tr>
+                                <td>{{ project.name }}</td>
+                                <td>{{ project.description|linebreaksbr }}</td>
+                                <td>{{ project.start_date }}</td>
+                                <td>{{ project.end_date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">没有符合条件的项目。</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                    <!-- My Projects -->
+                    <div class="mt-4">
+                        <h4 class="mb-4">我的项目</h4>
+                        <table class="table align-items-center table-flush">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col">项目名称</th>
+                                <th scope="col">描述</th>
+                                <th scope="col">开始日期</th>
+                                <th scope="col">结束日期</th>
                                 <th scope="col">状态</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {% for gpa in gpas %}
+                            {% for project in my_projects %}
                             <tr>
-                                <td>{{ gpa.item }}</td>
-                                <td>{{ gpa.desc }}</td>
-                                <td>{{ gpa.value }}</td>
-                                <td>
-                                    {% if gpa.is_approved %}
-                                    <span class="badge badge-success">已批准</span>
-                                    {% else %}
-                                    <span class="badge badge-secondary">未批准</span>
-                                    {% endif %}
-                                </td>
+                                <td>{{ project.name }}</td>
+                                <td>{{ project.description|linebreaksbr }}</td>
+                                <td>{{ project.start_date }}</td>
+                                <td>{{ project.end_date }}</td>
+                                <td>{{ project.get_status_display }}</td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" class="text-center">没有可用的 GPA 数据。</td>
+                                <td colspan="5" class="text-center">没有我的项目。</td>
                             </tr>
                             {% endfor %}
                             </tbody>
@@ -103,6 +128,8 @@
         </div>
     </div>
 </div>
+
+
 {% endblock content %}
 
 <!-- Specific JS goes HERE -->

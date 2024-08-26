@@ -131,38 +131,6 @@
     </div>
 </div>
 
-<!-- 申报绩点模态框 -->
-<div class="modal fade" id="gpaModal" tabindex="-1" role="dialog" aria-labelledby="gpaModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="gpaModalLabel">申报绩点</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="gpaForm" method="post" onsubmit="submitGPA(event)">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="item">申报项目</label>
-                        <input type="text" class="form-control" id="item" name="item" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="value">申报绩点值</label>
-                        <input type="number" step="0.01" class="form-control" id="value" name="value" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="desc">申报详细信息</label>
-                        <textarea class="form-control" id="desc" name="desc" rows="3" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">提交</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Page content -->
 <div class="container-fluid mt--6">
     <div class="row">
@@ -175,40 +143,58 @@
                     <table class="table align-items-center table-flush">
                         <thead class="thead-light">
                         <tr>
+                            <th scope="col">项目类型</th>
                             <th scope="col">项目名称</th>
                             <th scope="col">项目进展</th>
+                            <th scope="col">历史进展</th>
                             <th scope="col">开始日期</th>
                             <th scope="col">结束日期</th>
                             <th scope="col">状态</th>
                             <th scope="col">进度</th>
                             <th scope="col">负责人</th>
-                            <th scope="col">优先级</th>
+                            <th scope="col">进度预警</th>
+                            <th scope="col">操作</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for project in projects %}
-                        <tr class="project-row" data-toggle="modal" data-target="#editProjectModal"
-                            data-id="{{ project.id }}" data-name="{{ project.name }}"
-                            data-description="{{ project.description }}" data-start_date="{{ project.start_date }}"
-                            data-end_date="{{ project.end_date }}" data-status="{{ project.status }}"
-                            data-priority="{{ project.priority }}"
-                            data-owners="{{ project.owner.all|join:',' }}">
+                        <tr class="project-row" data-id="{{ project.id }}"
+                            data-name="{{ project.name }}"
+                            data-start-date="{{ project.start_date }}"
+                            data-end-date="{{ project.end_date }}"
+                            data-status="{{ project.status }}"
+                            data-progress="{{ project.progress }}">
+                            <td>{{ project.project_type.name }}</td>
                             <td>{{ project.name }}</td>
                             <td>{{ project.description|linebreaksbr }}</td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal"
+                                        data-target="#historyModal" data-project-id="{{ project.id }}">
+                                    查看历史进度
+                                </button>
+                            </td>
                             <td>{{ project.start_date }}</td>
                             <td>{{ project.end_date }}</td>
                             <td>{{ project.get_status_display }}</td>
                             <td>{{ project.progress }}%</td>
+                            <td>{{ project.owner }}</td>
                             <td>
-                                {% for user in project.owner.all %}
-                                {{ user.username }}{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
+                                {% if project.end_date < today %}
+                                ⚠️已逾期
+                                {% else %}
+                                进度正常
+                                {% endif %}
                             </td>
-                            <td>{{ project.get_priority_display }}</td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal"
+                                        data-target="#editProjectModal" data-project-id="{{ project.id }}">
+                                    修改项目信息
+                                </button>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center">没有项目</td>
+                            <td colspan="9" class="text-center">没有项目</td>
                         </tr>
                         {% endfor %}
                         </tbody>
@@ -220,6 +206,34 @@
 
     {% include "includes/footer.html" %}
 
+</div>
+
+<!-- History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historyModalLabel">项目历史进度</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table align-items-center table-flush">
+                    <thead class="thead-light">
+                    <tr>
+                        <th scope="col">日期</th>
+                        <th scope="col">描述</th>
+                    </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                    <!-- Historical data will be injected here via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- New Project Modal -->
@@ -234,15 +248,19 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form method="post" action="{% url 'dep_business_create_project' %}">
+                <form method="post" action="{% url 'dep_develop_create_project' %}">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="projectName">项目名称</label>
                         <input type="text" class="form-control" id="projectName" name="name" required>
                     </div>
                     <div class="form-group">
-                        <label for="projectDescription">项目进展</label>
-                        <textarea class="form-control" id="projectDescription" name="description"></textarea>
+                        <label for="projectType">项目类型</label>
+                        <select class="form-control" id="projectType" name="project_type" required>
+                            {% for project_type in project_types %}
+                            <option value="{{ project_type.id }}">{{ project_type.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="startDate">开始日期</label>
@@ -259,22 +277,6 @@
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="priority">优先级</label>
-                        <select class="form-control" id="priority" name="priority" required>
-                            <option value="low">低</option>
-                            <option value="medium">中</option>
-                            <option value="high">高</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="owner">负责人</label>
-                        <select multiple class="form-control" id="owner" name="owner">
-                            {% for user in users %}
-                            <option value="{{ user.id }}">{{ user.username }}</option>
-                            {% endfor %}
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">保存</button>
@@ -296,16 +298,12 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form method="post" action="{% url 'dep_business_edit_project' %}">
+                <form method="post" action="{% url 'dep_develop_edit_project' %}">
                     {% csrf_token %}
                     <input type="hidden" id="editProjectId" name="id">
                     <div class="form-group">
                         <label for="editProjectName">项目名称</label>
                         <input type="text" class="form-control" id="editProjectName" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editProjectDescription">项目进展</label>
-                        <textarea class="form-control" id="editProjectDescription" name="description"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="editStartDate">开始日期</label>
@@ -325,20 +323,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="editPriority">优先级</label>
-                        <select class="form-control" id="editPriority" name="priority" required>
-                            <option value="low">低</option>
-                            <option value="medium">中</option>
-                            <option value="high">高</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editOwner">负责人</label>
-                        <select multiple class="form-control" id="editOwner" name="owner">
-                            {% for user in users %}
-                            <option value="{{ user.id }}">{{ user.username }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="editProgress">进度 (%)</label>
+                        <input type="number" class="form-control" id="editProgress" name="progress" required>
                     </div>
                     <button type="submit" class="btn btn-primary">保存修改</button>
                 </form>
@@ -346,10 +332,34 @@
         </div>
     </div>
 </div>
-
 {% endblock content %}
 
 {% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#editProjectModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var row = button.closest('tr'); // Get the row containing the button
+
+            // Extract data from the row
+            var projectId = row.data('id');
+            var projectName = row.data('name');
+            var startDate = row.data('start-date');
+            var endDate = row.data('end-date');
+            var status = row.data('status');
+            var progress = row.data('progress');
+
+            // Populate the modal form with the project data
+            $('#editProjectId').val(projectId);
+            $('#editProjectName').val(projectName);
+            $('#editStartDate').val(startDate);
+            $('#editEndDate').val(endDate);
+            $('#editStatus').val(status);
+            $('#editProgress').val(progress);
+        });
+    });
+</script>
+
 <script>
     $(document).ready(function() {
       $('.project-row').on('click', function() {
@@ -360,7 +370,7 @@
         var endDate = $(this).data('end_date');
         var status = $(this).data('status');
         var priority = $(this).data('priority');
-        var owners = $(this).data('owners').split(',');
+        var project_type = $(this).data('project_type');
 
         $('#editProjectId').val(projectId);
         $('#editProjectName').val(projectName);
@@ -369,40 +379,40 @@
         $('#editEndDate').val(endDate);
         $('#editStatus').val(status);
         $('#editPriority').val(priority);
-
-        $('#editOwner').val(owners);
-        $('#editOwner').trigger('change'); // For select2 or similar plugins if used
+        $('#editProjectType').val(project_type);
       });
     });
 </script>
 
 <script>
-function submitGPA(event) {
-    event.preventDefault(); // Prevent the default form submission
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#historyModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var projectId = button.data('project-id'); // Extract info from data-* attributes
 
-    const form = document.getElementById('gpaForm');
-    const formData = new FormData(form);
+            var modal = $(this);
 
-    fetch("{% url 'submit_gpa' %}", {  // 替换为你的 URL 名称
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',  // Optional: Indicates AJAX request
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('申报成功！');
-            $('#gpaModal').modal('hide'); // Hide the modal
-        } else {
-            alert('申报失败，请重试！');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('申报失败，请重试！');
+            // Fetch historical data for the selected project
+            $.ajax({
+                url: '{% url "get_daily_items" %}', // Adjust URL as needed
+                data: {
+                    project_id: projectId
+                },
+                success: function (data) {
+                    var tableBody = modal.find('#historyTableBody');
+                    tableBody.empty(); // Clear existing data
+
+                    data.forEach(function (item) {
+                        tableBody.append(`
+                            <tr>
+                                <td>${item.date}</td>
+                                <td>${item.description}</td>
+                            </tr>
+                        `);
+                    });
+                }
+            });
+        });
     });
-}
 </script>
 {% endblock javascripts %}

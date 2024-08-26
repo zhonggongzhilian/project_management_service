@@ -57,7 +57,7 @@ def pages(request):
 def dep_develop(request):
     projects = Project.objects.filter(department=1)
     users = User.objects.all()
-    project_types = ProjectType.objects.all()
+    project_types = ProjectType.objects.filter(department=1)
     for project in projects:
         daily_item = DailyItem.objects.filter(project=project).first()
         project.description = daily_item.description if daily_item else ""
@@ -122,13 +122,11 @@ def dep_develop_edit_project(request):
 def dep_business(request):
     projects = Project.objects.filter(department=2)
     users = User.objects.all()
+    project_types = ProjectType.objects.filter(department=2)
     for project in projects:
         daily_item = DailyItem.objects.filter(project=project).first()
-        project.description = daily_item.description
-    for project in projects:
-        daily_item = DailyItem.objects.filter(project=project).first()
-        project.description = daily_item.description
-    return render(request, 'home/dep_business.html', {'projects': projects, 'users': users})
+        project.description = daily_item.description if daily_item else ""
+    return render(request, 'home/dep_business.html', {'projects': projects, 'users': users, 'project_types': project_types})
 
 
 @login_required(login_url="/login/")
@@ -138,19 +136,21 @@ def dep_business_create_project(request):
         start_date = request.POST['start_date']
         end_date = request.POST['end_date']
         status = request.POST['status']
-        priority = request.POST['priority']
-        owner_ids = request.POST.getlist('owner')
-        owners = User.objects.filter(id__in=owner_ids)
+        amount = request.POST['amount']
+        owner = request.user
+        project_type = ProjectType.objects.get(id=request.POST['project_type'])
+        department = Department.objects.get(id=2)
 
         project = Project.objects.create(
             name=name,
+            project_type=project_type,
             start_date=start_date,
             end_date=end_date,
             status=status,
-            priority=priority,
-            department=2
+            department=department,
+            owner=owner,
+            amount=amount
         )
-        project.owner.set(owners)
         project.save()
 
         return redirect('dep_business')  # 重定向到项目列表页面
@@ -168,11 +168,9 @@ def dep_business_edit_project(request):
         project.start_date = request.POST['start_date']
         project.end_date = request.POST['end_date']
         project.status = request.POST['status']
-        project.priority = request.POST['priority']
+        project.progress = request.POST['progress']
 
-        owner_ids = request.POST.getlist('owner')
-        owners = User.objects.filter(id__in=owner_ids)
-        project.owner.set(owners)
+        project.owner = request.user
 
         project.save()
         return redirect('dep_business')
@@ -184,10 +182,11 @@ def dep_business_edit_project(request):
 def dep_tech(request):
     projects = Project.objects.filter(department=3)
     users = User.objects.all()
+    project_types = ProjectType.objects.filter(department=3)
     for project in projects:
         daily_item = DailyItem.objects.filter(project=project).first()
-        project.description = daily_item.description
-    return render(request, 'home/dep_tech.html', {'projects': projects, 'users': users})
+        project.description = daily_item.description if daily_item else ""
+    return render(request, 'home/dep_tech.html', {'projects': projects, 'users': users, 'project_types': project_types})
 
 
 @login_required(login_url="/login/")
@@ -197,19 +196,21 @@ def dep_tech_create_project(request):
         start_date = request.POST['start_date']
         end_date = request.POST['end_date']
         status = request.POST['status']
-        priority = request.POST['priority']
-        owner_ids = request.POST.getlist('owner')
-        owners = User.objects.filter(id__in=owner_ids)
+        amount = request.POST['amount']
+        owner = request.user
+        project_type = ProjectType.objects.get(id=request.POST['project_type'])
+        department = Department.objects.get(id=3)
 
         project = Project.objects.create(
             name=name,
+            project_type=project_type,
             start_date=start_date,
             end_date=end_date,
             status=status,
-            priority=priority,
-            department=3
+            department=department,
+            owner=owner,
+            amount=amount
         )
-        project.owner.set(owners)
         project.save()
 
         return redirect('dep_tech')  # 重定向到项目列表页面
@@ -227,11 +228,9 @@ def dep_tech_edit_project(request):
         project.start_date = request.POST['start_date']
         project.end_date = request.POST['end_date']
         project.status = request.POST['status']
-        project.priority = request.POST['priority']
+        project.progress = request.POST['progress']
 
-        owner_ids = request.POST.getlist('owner')
-        owners = User.objects.filter(id__in=owner_ids)
-        project.owner.set(owners)
+        project.owner = request.user
 
         project.save()
         return redirect('dep_tech')
@@ -288,11 +287,24 @@ def daily_add(request):
 
 @login_required(login_url="/login/")
 def profile(request):
-    daily_reports = Daily.objects.all()  # 或者你可以根据需要筛选日报
-    gpas = GPA.objects.filter(user=request.user)  # 查询当前用户的所有 GPA 数据
+    # 检查用户是否是超级用户
+    is_superuser = request.user.is_superuser
+
+    # 获取当前用户的未批准且状态为 completed 的项目
+    incomplete_projects = None
+    if is_superuser:
+        incomplete_projects = Project.objects.filter(
+            owner=request.user,
+            is_approved=False,
+            status='completed'
+        )
+
+    my_projects = Project.objects.filter(owner=request.user)
+
     return render(request, 'home/profile.html', {
-        'daily_reports': daily_reports,
-        'gpas': gpas,
+        'incomplete_projects': incomplete_projects,
+        'my_projects': my_projects,
+        'is_superuser': is_superuser
     })
 
 
