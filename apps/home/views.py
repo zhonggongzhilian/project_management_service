@@ -15,8 +15,8 @@ from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
 
-from .models import Daily, GPA, DailyItem
-from .models import Project
+from .models import Daily, GPA, DailyItem, Department
+from .models import Project, ProjectType
 
 
 @login_required(login_url="/login/")
@@ -57,10 +57,11 @@ def pages(request):
 def dep_develop(request):
     projects = Project.objects.filter(department=1)
     users = User.objects.all()
+    project_types = ProjectType.objects.all()
     for project in projects:
         daily_item = DailyItem.objects.filter(project=project).first()
-        project.description = daily_item.description
-    return render(request, 'home/dep_develop.html', {'projects': projects, 'users': users})
+        project.description = daily_item.description if daily_item else ""
+    return render(request, 'home/dep_develop.html', {'projects': projects, 'users': users, 'project_types': project_types})
 
 
 @login_required(login_url="/login/")
@@ -77,19 +78,19 @@ def dep_develop_create_project(request):
         start_date = request.POST['start_date']
         end_date = request.POST['end_date']
         status = request.POST['status']
-        priority = request.POST['priority']
-        owner_ids = request.POST.getlist('owner')
-        owners = User.objects.filter(id__in=owner_ids)
+        owner = request.user
+        project_type = ProjectType.objects.get(id=request.POST['project_type'])
+        department = Department.objects.get(id=1)
 
         project = Project.objects.create(
             name=name,
+            project_type=project_type,
             start_date=start_date,
             end_date=end_date,
             status=status,
-            priority=priority,
-            department=1
+            department=department,
+            owner=owner
         )
-        project.owner.set(owners)
         project.save()
 
         return redirect('dep_develop')  # 重定向到项目列表页面

@@ -163,6 +163,14 @@
                         <input type="text" class="form-control" id="projectName" name="name" required>
                     </div>
                     <div class="form-group">
+                        <label for="projectType">项目类型</label>
+                        <select class="form-control" id="projectType" name="project_type" required>
+                            {% for project_type in project_types %}
+                            <option value="{{ project_type.id }}">{{ project_type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="startDate">开始日期</label>
                         <input type="date" class="form-control" id="startDate" name="start_date" required>
                     </div>
@@ -177,22 +185,6 @@
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="priority">优先级</label>
-                        <select class="form-control" id="priority" name="priority" required>
-                            <option value="low">低</option>
-                            <option value="medium">中</option>
-                            <option value="high">高</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="owner">负责人</label>
-                        <select multiple class="form-control" id="owner" name="owner">
-                            {% for user in users %}
-                            <option value="{{ user.id }}">{{ user.username }}</option>
-                            {% endfor %}
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">保存</button>
@@ -286,7 +278,7 @@
         var endDate = $(this).data('end_date');
         var status = $(this).data('status');
         var priority = $(this).data('priority');
-        var owners = $(this).data('owners').split(',');
+        var project_type = $(this).data('project_type');
 
         $('#editProjectId').val(projectId);
         $('#editProjectName').val(projectName);
@@ -295,9 +287,7 @@
         $('#editEndDate').val(endDate);
         $('#editStatus').val(status);
         $('#editPriority').val(priority);
-
-        $('#editOwner').val(owners);
-        $('#editOwner').trigger('change'); // For select2 or similar plugins if used
+        $('#editProjectType').val(project_type);
       });
     });
 </script>
