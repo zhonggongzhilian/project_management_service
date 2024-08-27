@@ -131,16 +131,7 @@
                         <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
                     </div>
                     <div id="dailyItemsContainer">
-                        <div class="form-group daily-item">
-                            <label for="project">项目</label>
-                            <select class="form-control" id="project" name="projects[]" required>
-                                {% for project in projects %}
-                                <option value="{{ project.id }}">{{ project.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <label for="description">描述</label>
-                            <input type="text" class="form-control" id="description" name="descriptions[]" required>
-                        </div>
+                        <!-- Initial item will be added dynamically -->
                     </div>
                     <button type="button" class="btn btn-info" id="addItemBtn">添加更多项目</button>
                 </div>
@@ -163,22 +154,35 @@
 document.addEventListener('DOMContentLoaded', function() {
     const addItemBtn = document.getElementById('addItemBtn');
     const container = document.getElementById('dailyItemsContainer');
-    let itemIndex = 1;
+    let itemIndex = 0;
 
-    addItemBtn.addEventListener('click', function() {
+    function addItem() {
+        itemIndex++;
         const newItem = document.createElement('div');
         newItem.classList.add('form-group', 'daily-item');
         newItem.innerHTML = `
-            <label for="project">项目</label>
+            <label for="project${itemIndex}">项目</label>
             <select class="form-control" name="projects[]">
                 {% for project in projects %}
                 <option value="{{ project.id }}">{{ project.name }}</option>
                 {% endfor %}
             </select>
-            <label for="description">描述</label>
+            <label for="description${itemIndex}">项目进展</label>
             <input type="text" class="form-control" name="descriptions[]">
+            <button type="button" class="btn btn-danger btn-sm mt-2 removeItemBtn">
+                删除
+            </button>
         `;
         container.appendChild(newItem);
+    }
+
+    addItemBtn.addEventListener('click', addItem);
+
+    // Event delegation to handle dynamically added elements
+    container.addEventListener('click', function(event) {
+        if (event.target.classList.contains('removeItemBtn')) {
+            event.target.parentElement.remove();
+        }
     });
 });
 </script>
