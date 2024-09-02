@@ -114,7 +114,7 @@ def dep_develop(request):
     users = User.objects.all()
     project_types = ProjectType.objects.filter(department=1)
     for project in projects:
-        daily_item = DailyItem.objects.filter(project=project).first()
+        daily_item = DailyItem.objects.filter(project=project).last()
         project.description = daily_item.description if daily_item else ""
     return render(request, 'home/dep_develop.html',
                   {'projects': projects, 'users': users, 'project_types': project_types})
@@ -225,7 +225,6 @@ def dep_business_edit_project(request):
         project.start_date = request.POST['start_date']
         project.end_date = request.POST['end_date']
         project.status = request.POST['status']
-        project.progress = request.POST['progress']
 
         project.owner = request.user
 
@@ -285,7 +284,6 @@ def dep_tech_edit_project(request):
         project.start_date = request.POST['start_date']
         project.end_date = request.POST['end_date']
         project.status = request.POST['status']
-        project.progress = request.POST['progress']
 
         project.owner = request.user
 
