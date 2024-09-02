@@ -24,7 +24,7 @@
                                 </div>
                                 <div class="col-auto">
                                     <div class="icon icon-shape bg-gradient-red text-white rounded-circle shadow">
-                                        <i class="ni ni-active-40"></i>
+                                        <i class="ni ni-single-02"></i> <!-- 更换为单个用户图标 -->
                                     </div>
                                 </div>
                             </div>
@@ -42,7 +42,7 @@
                                 </div>
                                 <div class="col-auto">
                                     <div class="icon icon-shape bg-gradient-orange text-white rounded-circle shadow">
-                                        <i class="ni ni-chart-pie-35"></i>
+                                        <i class="ni ni-briefcase-24"></i> <!-- 更换为项目图标 -->
                                     </div>
                                 </div>
                             </div>
@@ -60,7 +60,7 @@
                                 </div>
                                 <div class="col-auto">
                                     <div class="icon icon-shape bg-gradient-green text-white rounded-circle shadow">
-                                        <i class="ni ni-money-coins"></i>
+                                        <i class="ni ni-money-coins"></i> <!-- 保留金钱图标 -->
                                     </div>
                                 </div>
                             </div>
@@ -76,6 +76,11 @@
                                     <h5 class="card-title text-uppercase text-muted mb-0">日报数量</h5>
                                     <span class="h2 font-weight-bold mb-0">{{ daily_amount }}</span>
                                 </div>
+                                <div class="col-auto">
+                                    <div class="icon icon-shape bg-gradient-blue text-white rounded-circle shadow">
+                                        <i class="ni ni-books"></i> <!-- 更换为书本图标，表示日报 -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -88,7 +93,7 @@
 <!-- Page content -->
 <div class="container-fluid mt--6">
     <div class="row">
-        <div class="col-xl-8">
+        <div class="col-xl-8 col-md-8">
             <div class="card bg-default">
                 <div class="card-header bg-transparent">
                     <div class="row align-items-center">
@@ -127,7 +132,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-4">
+        <div class="col-xl-4 col-md-4">
             <div class="card">
                 <div class="card-header bg-transparent">
                     <div class="row align-items-center">
@@ -147,7 +152,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-xl-8">
+        <div class="col-xl-8 col-md-8">
             <div class="card">
                 <div class="card-header border-0">
                     <div class="row align-items-center">
@@ -195,59 +200,59 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-4">
-    <div class="card">
-        <div class="card-header border-0">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h3 class="mb-0">销售冠军榜</h3>
+        <div class="col-xl-4 col-md-4">
+            <div class="card">
+                <div class="card-header border-0">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h3 class="mb-0">销售冠军榜</h3>
+                        </div>
+                        <div class="col text-right">
+                            <a href="#!" class="btn btn-sm btn-primary">查看所有</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="col text-right">
-                    <a href="#!" class="btn btn-sm btn-primary">查看所有</a>
+                <div class="table-responsive">
+                    <!-- Sales leaderboard table -->
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                        <tr>
+                            <th scope="col">排名</th>
+                            <th scope="col">人员姓名</th>
+                            <th scope="col">总销售额</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for user in sales_data %}
+                        <tr>
+                            <th scope="row">
+                                {% if forloop.counter == 1 %}
+                                🏆
+                                {% elif forloop.counter == 2 %}
+                                🥈
+                                {% elif forloop.counter == 3 %}
+                                🥉
+                                {% else %}
+                                {{ forloop.counter }}
+                                {% endif %}
+                            </th>
+                            <td>
+                                {{ user.username }}
+                            </td>
+                            <td>
+                                {{ user.total_amount|floatformat:2 }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center">没有销售数据。</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-        <div class="table-responsive">
-            <!-- Sales leaderboard table -->
-            <table class="table align-items-center table-flush">
-                <thead class="thead-light">
-                <tr>
-                    <th scope="col">排名</th>
-                    <th scope="col">人员姓名</th>
-                    <th scope="col">总销售额</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for user in sales_data %}
-                <tr>
-                    <th scope="row">
-                        {% if forloop.counter == 1 %}
-                            🏆
-                        {% elif forloop.counter == 2 %}
-                            🥈
-                        {% elif forloop.counter == 3 %}
-                            🥉
-                        {% else %}
-                            {{ forloop.counter }}
-                        {% endif %}
-                    </th>
-                    <td>
-                        {{ user.username }}
-                    </td>
-                    <td>
-                        {{ user.total_amount|floatformat:2 }}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" class="text-center">没有销售数据。</td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
     </div>
 
     {% include "includes/footer.html" %}
