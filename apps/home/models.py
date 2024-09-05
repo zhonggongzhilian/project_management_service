@@ -100,9 +100,9 @@ class GPA(models.Model):
 
 class Customer(models.Model):
     name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255)
-    phone = models.CharField(max_length=20)
-    company_details = models.CharField(max_length=255,blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)  # 允许为空
+    phone = models.CharField(max_length=20, blank=True, null=True)    # 允许为空
+    company_details = models.CharField(max_length=255, blank=True, null=True)
     def __str__(self):
         return self.name
 
