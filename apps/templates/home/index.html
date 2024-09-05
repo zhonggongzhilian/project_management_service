@@ -5,8 +5,8 @@
 {% block stylesheets %}
 <style>
     .circular-progress-container {
-    max-width: 300px;
-    max-height: 300px;
+    max-width: 350px;
+    max-height: 350px;
     margin: auto;
 }
 
@@ -209,9 +209,6 @@
                         <div class="col">
                             <h3 class="mb-0">项目进度表</h3>
                         </div>
-                        <div class="col text-right">
-                            <a href="#!" class="btn btn-sm btn-primary">查看所有</a>
-                        </div>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -235,8 +232,8 @@
                                 <div class="progress">
                                     <div class="progress-bar" role="progressbar" style="width: {{ project.progress }}%;"
                                          aria-valuenow="{{ project.progress }}" aria-valuemin="0" aria-valuemax="100">
-                                        {{ project.progress }} %
-                                    </div>
+
+                                    </div><p>{{ project.progress }} %</p>
                                 </div>
                             </td>
                         </tr>
@@ -256,9 +253,6 @@
                     <div class="row align-items-center">
                         <div class="col">
                             <h3 class="mb-0">销售冠军榜</h3>
-                        </div>
-                        <div class="col text-right">
-                            <a href="#!" class="btn btn-sm btn-primary">查看所有</a>
                         </div>
                     </div>
                 </div>
