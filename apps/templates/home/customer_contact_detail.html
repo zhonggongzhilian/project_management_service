@@ -1,0 +1,135 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}客户联系人详情{% endblock title %}
+
+{% block content %}
+<div class="header bg-primary pb-6">
+    <div class="container-fluid">
+        <div class="header-body">
+            <div class="row align-items-center py-4">
+                <div class="col-lg-6 col-7">
+                    <h6 class="h2 text-white d-inline-block mb-0">客户联系人详情 - {{ customer.name }}</h6>
+                </div>
+                <div class="col-lg-6 col-5 text-right">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newContactModal">新建联系人</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid mt--6">
+    <div class="row">
+        <div class="col">
+            <div class="card border-0">
+                <div class="card-header">
+                    <h3 class="mb-0">联系人列表</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                <tr>
+                    <th>联系人名称</th>
+                    <th>性别</th>
+                    <th>职位</th>
+                    <th>电话号码</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contact in contacts %}
+                <tr>
+                    <td>{{ contact.name }}</td>
+                    <td>{{ contact.gender }}</td>
+                    <td>{{ contact.position }}</td>
+                    <td>{{ contact.phone_number }}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteContactModal" data-contact-id="{{ contact.id }}">
+                            删除
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">没有联系人信息。</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- New Contact Modal -->
+    <div class="modal fade" id="newContactModal" tabindex="-1" role="dialog" aria-labelledby="newContactModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newContactModalLabel">新建联系人</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="post" action="{% url 'customer-contact-create' customer.id %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="newContactName">联系人名称</label>
+                            <input type="text" class="form-control" id="newContactName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newContactGender">性别</label>
+                            <input type="text" class="form-control" id="newContactGender" name="gender" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newContactPosition">职位</label>
+                            <input type="text" class="form-control" id="newContactPosition" name="position" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newContactPhoneNumber">电话号码</label>
+                            <input type="text" class="form-control" id="newContactPhoneNumber" name="phone_number" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Contact Modal -->
+    <div class="modal fade" id="deleteContactModal" tabindex="-1" role="dialog" aria-labelledby="deleteContactModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteContactModalLabel">删除联系人</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="post" action="{% url 'customer-contact-delete' customer.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="deleteContactId" name="contact_id">
+                    <div class="modal-body">
+                        <p>确定要删除这个联系人吗？</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                        <button type="submit" class="btn btn-danger">删除</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+    $('#deleteContactModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var contactId = button.data('contact-id');
+        $('#deleteContactId').val(contactId);
+    });
+</script>
+{% endblock javascripts %}

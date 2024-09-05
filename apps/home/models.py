@@ -97,3 +97,21 @@ class GPA(models.Model):
     value = models.FloatField(default=0.0)
     is_approved = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+class Customer(models.Model):
+    name = models.CharField(max_length=255)
+    address = models.CharField(max_length=255)
+    phone = models.CharField(max_length=20)
+    company_details = models.CharField(max_length=255,blank=True, null=True)
+    def __str__(self):
+        return self.name
+
+class CustomerContact(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='contacts')
+    name = models.CharField(max_length=255)
+    gender = models.CharField(max_length=10)
+    position = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=20)
+
+    def __str__(self):
+        return f"{self.name} - {self.customer.name}"

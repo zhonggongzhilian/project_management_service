@@ -1,0 +1,193 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}客户管理{% endblock title %}
+
+{% block content %}
+<div class="header bg-primary pb-6">
+    <div class="container-fluid">
+        <div class="header-body">
+            <div class="row align-items-center py-4">
+                <div class="col-lg-6 col-7">
+                    <h6 class="h2 text-white d-inline-block mb-0">客户管理系统</h6>
+                </div>
+                <div class="col-6 col-lg-2 offset-lg-4 text-right">
+                    <button type="button" class="btn btn-success mb-3" data-toggle="modal" data-target="#newCustomerModal">新建客户</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid mt--6">
+    <div class="row">
+        <div class="col">
+            <div class="card border-0">
+                <div class="card-header d-flex align-items-center">
+    <div class="input-group col-xl-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="搜索客户名称">
+        <div class="input-group-append">
+            <button type="button" class="btn btn-primary" onclick="searchCustomer()">搜索</button>
+        </div>
+    </div>
+</div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-items-center table-flush">
+                        <thead class="thead-light">
+                <tr>
+                    <th>客户名称</th>
+                    <th>客户地址</th>
+                    <th>客户电话</th>
+                    <th>公司详情</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td><a href="{% url 'customer-contact-detail' customer.id %}">{{ customer.name }}</a></td>
+                    <td>{{ customer.address }}</td>
+                    <td>{{ customer.phone }}</td>
+                    <td>{{ customer.company_details }}</td>
+                    <td>
+                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#editCustomerModal" data-customer-id="{{ customer.id }}">
+                            修改
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm delete-customer-btn" data-customer-id="{{ customer.id }}">删除</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">没有找到客户信息。</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+<!-- New Customer Modal -->
+<div class="modal fade" id="newCustomerModal" tabindex="-1" role="dialog" aria-labelledby="newCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newCustomerModalLabel">新建客户</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" action="{% url 'customer-create' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="customerName">客户名称</label>
+                        <input type="text" class="form-control" id="customerName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerAddress">客户地址</label>
+                        <input type="text" class="form-control" id="customerAddress" name="address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone">客户电话</label>
+                        <input type="text" class="form-control" id="customerPhone" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerDetails">公司详情</label>
+                        <textarea class="form-control" id="customerDetails" name="company_details" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Customer Modal -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" role="dialog" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCustomerModalLabel">编辑客户</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" action="{% url 'customer-update' %}">
+                {% csrf_token %}
+                <input type="hidden" id="editCustomerId" name="id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editCustomerName">客户名称</label>
+                        <input type="text" class="form-control" id="editCustomerName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCustomerAddress">客户地址</label>
+                        <input type="text" class="form-control" id="editCustomerAddress" name="address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCustomerPhone">客户电话</label>
+                        <input type="text" class="form-control" id="editCustomerPhone" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCustomerDetails">公司详情</label>
+                        <textarea class="form-control" id="editCustomerDetails" name="company_details" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    <button type="submit" class="btn btn-primary">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+    function searchCustomer() {
+        var searchValue = $('#searchInput').val();
+        window.location.href = "{% url 'customer-list' %}?search=" + encodeURIComponent(searchValue);
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#editCustomerModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var customerId = button.data('customer-id');
+
+            // Populate the modal form with the customer data
+            $('#editCustomerId').val(customerId);
+            $('#editCustomerName').val('');
+            $('#editCustomerAddress').val('');
+            $('#editCustomerPhone').val('');
+            $('#editCustomerDetails').val(''); // 初始化公司详情
+        });
+
+        // 删除客户按钮点击事件
+        $('.delete-customer-btn').click(function() {
+            var customerId = $(this).data('customer-id');
+            if (confirm('确定要删除这个客户吗？')) {
+                $.ajax({
+                    url: '{% url "customer-delete" %}', // 这里需要一个处理删除的视图URL
+                    type: 'POST',
+                    data: {
+                        'customer_id': customerId,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(data) {
+                        if (data.success) {
+                            alert('客户删除成功');
+                            // 从表格中移除被删除的客户行
+                            $('tr[data-customer-id="' + customerId + '"]').remove();
+                        } else {
+                            alert('删除失败');
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock javascripts %}

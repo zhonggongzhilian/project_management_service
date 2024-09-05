@@ -14,9 +14,17 @@ from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from .models import Daily, GPA, DailyItem, Department, UserProfile
+from .models import Daily, GPA, DailyItem, Department, CustomerContact
 from .models import Project, ProjectType
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
+from .models import Customer
+from ..authentication.forms import CustomerForm, CustomerContactForm
 
 
 @login_required(login_url="/login/")
@@ -439,3 +447,85 @@ def submit_gpa(request):
         return JsonResponse({'success': True})
 
     return JsonResponse({'success': False})
+
+@login_required(login_url="/login/")
+def customer_list(request):
+    search_query = request.GET.get('search')
+    customers = Customer.objects.all()
+    if search_query:
+        customers = customers.filter(name__icontains=search_query)
+    return render(request, 'home/customers.html', {'customers': customers})
+
+@login_required(login_url="/login/")
+def customer_create(request):
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('customer-list')
+    else:
+        form = CustomerForm()
+    return render(request, 'home/customer_form.html', {'form': form})
+
+@login_required(login_url="/login/")
+def customer_update(request):
+    if request.method == 'POST':
+        customer_id = request.POST.get('id')
+        customer = get_object_or_404(Customer, id=customer_id)
+        form = CustomerForm(request.POST, instance=customer)
+        if form.is_valid():
+            form.save()
+            return redirect('customer-list')
+    else:
+        customer_id = request.GET.get('id')
+        customer = get_object_or_404(Customer, id=customer_id)
+        form = CustomerForm(instance=customer)
+    return render(request, 'home/customer_form.html', {'form': form})
+
+@require_POST
+@csrf_exempt
+def customer_delete(request):
+    customer_id = request.POST.get('customer_id')
+    if customer_id:
+        try:
+            customer = Customer.objects.get(id=customer_id)
+            customer.delete()
+            return JsonResponse({'success': True})
+        except Customer.DoesNotExist:
+            return JsonResponse({'success': False})
+    return JsonResponse({'success': False})
+
+
+def customer_contact_detail(request, customer_id):
+    customer = get_object_or_404(Customer, pk=customer_id)
+    contacts = customer.contacts.all()
+    return render(request, 'home/customer_contact_detail.html', {'customer': customer, 'contacts': contacts})
+
+
+# 新建联系人
+@require_POST
+def create_contact(request, customer_id):
+    customer = get_object_or_404(Customer, pk=customer_id)
+    form = CustomerContactForm(request.POST)
+    if form.is_valid():
+        contact = form.save(commit=False)
+        contact.customer = customer
+        contact.save()
+        return redirect('customer-contact-detail', customer_id=customer_id)
+    else:
+        return render(request, 'home/customer_contact_detail.html', {'customer': customer, 'contacts': customer.contacts.all(), 'form': form})
+
+@require_POST
+@csrf_exempt
+def delete_contact(request, customer_id):
+    contact_id = request.POST.get('contact_id')
+    contact = get_object_or_404(CustomerContact, pk=contact_id)
+    contact.delete()
+    return redirect('customer-contact-detail', customer_id=customer_id)
+
+def customer_list(request):
+    search_query = request.GET.get('search')
+    customers = Customer.objects.all()
+    if search_query:
+        customers = customers.filter(name__icontains=search_query)
+    return render(request, 'home/customers.html', {'customers': customers})

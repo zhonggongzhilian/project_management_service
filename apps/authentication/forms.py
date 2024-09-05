@@ -7,6 +7,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
+from apps.home.models import Customer, CustomerContact
+
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -64,3 +66,23 @@ class SignUpForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('username', 'phone_number', 'password1', 'password2')
+
+
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = ['name', 'address', 'phone', 'company_details']  # 添加 'company_details' 字段
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'required': True}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'company_details': forms.Textarea(attrs={'class': 'form-control', 'required': False})
+            # 为 'company_details' 字段定义 widget
+        }
+
+
+class CustomerContactForm(forms.ModelForm):
+    class Meta:
+        model = CustomerContact
+        fields = ['name', 'gender', 'position', 'phone_number']
