@@ -10,20 +10,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import JsonResponse
-from django.shortcuts import redirect, get_object_or_404
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.template import loader
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from .models import Daily, GPA, DailyItem, Department, UserProfile
+from .models import Customer
 from .models import Daily, GPA, DailyItem, Department, CustomerContact
 from .models import Project, ProjectType
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
-from .models import Customer
 from ..authentication.forms import CustomerForm, CustomerContactForm
 
 
@@ -33,6 +28,8 @@ def index(request):
     user_amount = len(users)
     projects = Project.objects.all()
     project_amount = len(projects)
+
+    clients = Customer.objects.all()
 
     total_amount = 0
     for project in projects:
@@ -70,7 +67,9 @@ def index(request):
     sales_data = []
     business_users = User.objects.filter(userprofile__department__id=2)
     for user in business_users:
-        total_amount = Project.objects.filter(owner=user, is_approved=1, department=2).aggregate(total_amount=Sum('amount'))['total_amount'] or 0
+        total_amount = \
+        Project.objects.filter(owner=user, is_approved=1, department=2).aggregate(total_amount=Sum('amount'))[
+            'total_amount'] or 0
         sales_data.append({
             'username': user.username,
             'total_amount': total_amount,
@@ -92,7 +91,9 @@ def index(request):
                'daily_amount': daily_amount,
                'daily_amount_today': daily_amount_today,
                'project_data': project_data,
-               'sales_data': sales_data, }
+               'sales_data': sales_data,
+               'clients': clients,
+               }
 
     html_template = loader.get_template('home/index.html')
     return HttpResponse(html_template.render(context, request))
@@ -128,6 +129,7 @@ def pages(request):
 def dep_develop(request):
     # 获取所有用户以供选择
     users = User.objects.filter(userprofile__department__id=1)
+    clients = Customer.objects.all()
 
     # 获取查询参数
     selected_user_id = request.GET.get('user')
@@ -148,8 +150,15 @@ def dep_develop(request):
         daily_item = DailyItem.objects.filter(project=project).last()
         project.description = daily_item.description if daily_item else ""
 
+    context = {
+        'projects': projects,
+        'users': users,
+        'project_types': project_types,
+        'clients': clients,
+    }
+
     return render(request, 'home/dep_develop.html',
-                  {'projects': projects, 'users': users, 'project_types': project_types})
+                  context=context)
 
 
 @login_required(login_url="/login/")
@@ -166,8 +175,9 @@ def dep_develop_create_project(request):
         start_date = request.POST['start_date']
         end_date = request.POST['end_date']
         status = request.POST['status']
-        owner = request.user
         project_type = ProjectType.objects.get(id=request.POST['project_type'])
+        owner = User.objects.get(id=request.POST['owner'])
+        client = Customer.objects.get(id=request.POST['client'])
         department = Department.objects.get(id=1)
 
         project = Project.objects.create(
@@ -177,7 +187,8 @@ def dep_develop_create_project(request):
             end_date=end_date,
             status=status,
             department=department,
-            owner=owner
+            owner=owner,
+            client=client
         )
         project.save()
 
@@ -198,9 +209,11 @@ def dep_develop_edit_project(request):
 
         project_type = get_object_or_404(ProjectType, id=request.POST['project_type'])
         owner = get_object_or_404(User, id=request.POST['owner'])
+        client = Customer.objects.get(id=request.POST['client'])
 
         project.project_type = project_type
         project.owner = owner
+        project.client = client
 
         project.save()
         return redirect('dep_develop')
@@ -313,7 +326,7 @@ def dep_tech_create_project(request):
         start_date = request.POST['start_date']
         end_date = request.POST['end_date']
         status = request.POST['status']
-        amount = request.POST['amount']
+        amount = 0
         owner = request.user
         project_type = ProjectType.objects.get(id=request.POST['project_type'])
         department = Department.objects.get(id=3)
@@ -362,6 +375,19 @@ def daily(request):
     projects = Project.objects.filter(owner=request.user)
     return render(request, 'home/daily.html', {'daily_reports': daily_reports,
                                                'projects': projects})
+
+
+@login_required
+def delete_project(request, project_id):
+    if request.method == 'POST':
+        project = get_object_or_404(Project, id=project_id)
+        # 检查权限，如果需要确保当前用户有权限删除项目
+        if request.user.is_superuser or project.owner == request.user:
+            project.delete()
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'error': '没有权限删除此项目'})
+    return JsonResponse({'success': False, 'error': '无效的请求'})
 
 
 @login_required(login_url="/login/")
@@ -448,6 +474,7 @@ def submit_gpa(request):
 
     return JsonResponse({'success': False})
 
+
 @login_required(login_url="/login/")
 def customer_list(request):
     search_query = request.GET.get('search')
@@ -455,6 +482,7 @@ def customer_list(request):
     if search_query:
         customers = customers.filter(name__icontains=search_query)
     return render(request, 'home/customers.html', {'customers': customers})
+
 
 @login_required(login_url="/login/")
 def customer_create(request):
@@ -466,6 +494,7 @@ def customer_create(request):
     else:
         form = CustomerForm()
     return render(request, 'home/customer_form.html', {'form': form})
+
 
 @login_required(login_url="/login/")
 def customer_update(request):
@@ -481,6 +510,7 @@ def customer_update(request):
         customer = get_object_or_404(Customer, id=customer_id)
         form = CustomerForm(instance=customer)
     return render(request, 'home/customer_form.html', {'form': form})
+
 
 @require_POST
 @csrf_exempt
@@ -513,7 +543,9 @@ def create_contact(request, customer_id):
         contact.save()
         return redirect('customer-contact-detail', customer_id=customer_id)
     else:
-        return render(request, 'home/customer_contact_detail.html', {'customer': customer, 'contacts': customer.contacts.all(), 'form': form})
+        return render(request, 'home/customer_contact_detail.html',
+                      {'customer': customer, 'contacts': customer.contacts.all(), 'form': form})
+
 
 @require_POST
 @csrf_exempt
@@ -522,6 +554,7 @@ def delete_contact(request, customer_id):
     contact = get_object_or_404(CustomerContact, pk=contact_id)
     contact.delete()
     return redirect('customer-contact-detail', customer_id=customer_id)
+
 
 def customer_list(request):
     search_query = request.GET.get('search')

@@ -27,6 +27,8 @@ urlpatterns = [
     path('dep_tech/create/', views.dep_tech_create_project, name='dep_tech_create_project'),
     path('dep_tech/edit/', views.dep_tech_edit_project, name='dep_tech_edit_project'),
 
+    path('delete_project/<int:project_id>/', views.delete_project, name='delete_project'),
+
     path('submit_gpa/', views.submit_gpa, name='submit_gpa'),
 
     path('daily/', views.daily, name='daily'),
