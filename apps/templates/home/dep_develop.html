@@ -47,21 +47,35 @@
         <div class="col">
             <div class="card border-0">
                 <div class="card-header">
-                    <h3 class="mb-0">项目列表</h3>
+                    <div class="col-auto">
+                        <form method="GET" action="">
+                            <select name="user" class="form-control" style="display: inline-block; width: auto;"
+                                    onchange="this.form.submit()">
+                                <option value="">所有研发</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}" {% if user.id|stringformat:"s" == request.GET.user %}selected{% endif %}>
+                                {{ user.username }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table align-items-center table-flush">
                         <thead class="thead-light">
                         <tr>
+                            <th scope="col">负责人</th>
                             <th scope="col">项目类型</th>
                             <th scope="col">项目名称</th>
+                            {% if not request.user.is_superuser %}
                             <th scope="col">项目进展</th>
+                            {% endif %}
                             <th scope="col">历史进展</th>
                             <th scope="col">开始日期</th>
                             <th scope="col">结束日期</th>
                             <th scope="col">状态</th>
                             <th scope="col">进度</th>
-                            <th scope="col">负责人</th>
                             <th scope="col">进度预警</th>
                             <th scope="col">操作</th>
                         </tr>
@@ -72,22 +86,26 @@
                             data-name="{{ project.name }}"
                             data-start-date="{{ project.start_date }}"
                             data-end-date="{{ project.end_date }}"
+                            data-project-type="{{ project.project_type }}"
+                            data-owner="{{ project.owner }}"
                             data-status="{{ project.status }}"
                             data-progress="{{ project.progress }}">
+                            <td>{{ project.owner }}</td>
                             <td>{{ project.project_type.name }}</td>
                             <td>{{ project.name }}</td>
+                            {% if not request.user.is_superuser %}
                             <td>{{ project.description|linebreaksbr }}</td>
+                            {% endif %}
                             <td>
                                 <button type="button" class="btn btn-info btn-sm" data-toggle="modal"
                                         data-target="#historyModal" data-project-id="{{ project.id }}">
                                     查看历史进度
                                 </button>
                             </td>
-                            <td>{{ project.start_date }}</td>
-                            <td>{{ project.end_date }}</td>
+                            <td>{{ project.start_date|date:"Y年n月j日" }}</td>
+                            <td>{{ project.end_date|date:"Y年n月j日" }}</td>
                             <td>{{ project.get_status_display }}</td>
                             <td>{{ project.progress }}%</td>
-                            <td>{{ project.owner }}</td>
                             <td>
                                 {% if project.end_date < today %}
                                 ⚠️已逾期
@@ -211,18 +229,22 @@
                 <form method="post" action="{% url 'dep_develop_edit_project' %}">
                     {% csrf_token %}
                     <input type="hidden" id="editProjectId" name="id">
+
                     <div class="form-group">
                         <label for="editProjectName">项目名称</label>
                         <input type="text" class="form-control" id="editProjectName" name="name" required>
                     </div>
+
+
                     <div class="form-group">
-                        <label for="editStartDate">开始日期</label>
-                        <input type="date" class="form-control" id="editStartDate" name="start_date" required>
+                        <label for="editProjectType">项目类型</label>
+                        <select class="form-control" id="editProjectType" name="project_type" required>
+                            {% for project_type in project_types %}
+                            <option value="{{ project_type.id }}">{{ project_type.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label for="editEndDate">结束日期</label>
-                        <input type="date" class="form-control" id="editEndDate" name="end_date" required>
-                    </div>
+
                     <div class="form-group">
                         <label for="editStatus">状态</label>
                         <select class="form-control" id="editStatus" name="status" required>
@@ -232,10 +254,22 @@
                             <option value="delayed">延期</option>
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label for="editProgress">进度 (%)</label>
                         <input type="number" class="form-control" id="editProgress" name="progress" required>
                     </div>
+
+                    <div class="form-group">
+                        <label for="editOwner">项目负责人</label>
+                        <select class="form-control" id="editOwner" name="owner" required>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
                     <button type="submit" class="btn btn-primary">保存修改</button>
                 </form>
             </div>
@@ -254,18 +288,18 @@
             // Extract data from the row
             var projectId = row.data('id');
             var projectName = row.data('name');
-            var startDate = row.data('start-date');
-            var endDate = row.data('end-date');
             var status = row.data('status');
             var progress = row.data('progress');
+            var owner = row.data('owner'); // 获取负责人ID
+            var project_type = row.data('project_type'); // 获取项目类型ID
 
             // Populate the modal form with the project data
             $('#editProjectId').val(projectId);
             $('#editProjectName').val(projectName);
-            $('#editStartDate').val(startDate);
-            $('#editEndDate').val(endDate);
             $('#editStatus').val(status);
             $('#editProgress').val(progress);
+            $('#editOwner').val(owner);
+            $('#editProjectType').val(project_type);
         });
     });
 </script>

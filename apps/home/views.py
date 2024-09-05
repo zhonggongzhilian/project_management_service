@@ -15,7 +15,7 @@ from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
 
-from .models import Daily, GPA, DailyItem, Department
+from .models import Daily, GPA, DailyItem, Department, UserProfile
 from .models import Project, ProjectType
 
 
@@ -60,8 +60,9 @@ def index(request):
 
     from django.db.models import Sum
     sales_data = []
-    for user in users:
-        total_amount = Project.objects.filter(owner=user).aggregate(total_amount=Sum('amount'))['total_amount'] or 0
+    business_users = User.objects.filter(userprofile__department__id=2)
+    for user in business_users:
+        total_amount = Project.objects.filter(owner=user, is_approved=1, department=2).aggregate(total_amount=Sum('amount'))['total_amount'] or 0
         sales_data.append({
             'username': user.username,
             'total_amount': total_amount,
@@ -70,8 +71,15 @@ def index(request):
     # 按总销售额排序
     sales_data.sort(key=lambda x: x['total_amount'], reverse=True)
 
+    # 计算百分比
+    if user_amount != 0:
+        progress_percentage = (daily_amount_today / user_amount) * 100
+    else:
+        progress_percentage = 0
+
     context = {'user_amount': user_amount,
                'project_amount': project_amount,
+               'progress_percentage': round(progress_percentage, 2),
                'total_amount': total_amount,
                'daily_amount': daily_amount,
                'daily_amount_today': daily_amount_today,
@@ -110,12 +118,28 @@ def pages(request):
 
 @login_required(login_url="/login/")
 def dep_develop(request):
-    projects = Project.objects.filter(department=1)
-    users = User.objects.all()
+    # 获取所有用户以供选择
+    users = User.objects.filter(userprofile__department__id=1)
+
+    # 获取查询参数
+    selected_user_id = request.GET.get('user')
+
+    if request.user.is_superuser:
+        # 管理员可以查看所有项目，如果有选择用户则过滤项目
+        if selected_user_id:
+            projects = Project.objects.filter(department=1, owner_id=selected_user_id).order_by('end_date')
+        else:
+            projects = Project.objects.filter(department=1).order_by('end_date')
+    else:
+        # 非管理员用户只能查看自己负责的项目
+        projects = Project.objects.filter(owner=request.user, department=1).order_by('end_date')
+
     project_types = ProjectType.objects.filter(department=1)
+
     for project in projects:
         daily_item = DailyItem.objects.filter(project=project).last()
         project.description = daily_item.description if daily_item else ""
+
     return render(request, 'home/dep_develop.html',
                   {'projects': projects, 'users': users, 'project_types': project_types})
 
@@ -161,12 +185,14 @@ def dep_develop_edit_project(request):
         project = get_object_or_404(Project, id=project_id)
 
         project.name = request.POST['name']
-        project.start_date = request.POST['start_date']
-        project.end_date = request.POST['end_date']
         project.status = request.POST['status']
         project.progress = request.POST['progress']
 
-        project.owner = request.user
+        project_type = get_object_or_404(ProjectType, id=request.POST['project_type'])
+        owner = get_object_or_404(User, id=request.POST['owner'])
+
+        project.project_type = project_type
+        project.owner = owner
 
         project.save()
         return redirect('dep_develop')
@@ -176,14 +202,34 @@ def dep_develop_edit_project(request):
 
 @login_required(login_url="/login/")
 def dep_business(request):
-    projects = Project.objects.filter(department=2)
-    users = User.objects.all()
+    # 获取所有用户以供选择
+    users = User.objects.filter(userprofile__department__id=2)
+
+    # 获取查询参数
+    selected_user_id = request.GET.get('user')
+
+    if request.user.is_superuser:
+        # 管理员可以查看所有项目，如果有选择用户则过滤项目
+        if selected_user_id:
+            projects = Project.objects.filter(department=2, owner_id=selected_user_id).order_by('end_date')
+        else:
+            projects = Project.objects.filter(department=2).order_by('end_date')
+    else:
+        # 非管理员用户只能查看自己负责的项目
+        projects = Project.objects.filter(owner=request.user, department=2).order_by('end_date')
+
     project_types = ProjectType.objects.filter(department=2)
+
     for project in projects:
         daily_item = DailyItem.objects.filter(project=project).first()
         project.description = daily_item.description if daily_item else ""
-    return render(request, 'home/dep_business.html',
-                  {'projects': projects, 'users': users, 'project_types': project_types})
+
+    return render(request, 'home/dep_business.html', {
+        'projects': projects,
+        'users': users,
+        'project_types': project_types,
+        'selected_user': selected_user_id,  # 将选择的用户ID传递回模板
+    })
 
 
 @login_required(login_url="/login/")
@@ -220,13 +266,14 @@ def dep_business_edit_project(request):
     if request.method == 'POST':
         project_id = request.POST['id']
         project = get_object_or_404(Project, id=project_id)
+        project_type = get_object_or_404(ProjectType, id=request.POST['project_type'])
+        owner = get_object_or_404(User, id=request.POST['owner'])
 
         project.name = request.POST['name']
-        project.start_date = request.POST['start_date']
-        project.end_date = request.POST['end_date']
         project.status = request.POST['status']
-
-        project.owner = request.user
+        project.amount = request.POST['amount']
+        project.project_type = project_type
+        project.owner = owner
 
         project.save()
         return redirect('dep_business')
@@ -236,8 +283,14 @@ def dep_business_edit_project(request):
 
 @login_required(login_url="/login/")
 def dep_tech(request):
-    projects = Project.objects.filter(department=3)
-    users = User.objects.all()
+    if request.user.is_superuser:  # 如果用户是管理员，查看所有项目
+        projects = Project.objects.filter(department=3)
+        users = User.objects.all()
+    else:
+        # 非管理员用户只能查看自己负责的项目
+        projects = Project.objects.filter(owner=request.user, department=3)
+        users = User.objects.filter(username=request.user.username)
+
     project_types = ProjectType.objects.filter(department=3)
     for project in projects:
         daily_item = DailyItem.objects.filter(project=project).first()
@@ -279,13 +332,15 @@ def dep_tech_edit_project(request):
     if request.method == 'POST':
         project_id = request.POST['id']
         project = get_object_or_404(Project, id=project_id)
+        project_type = get_object_or_404(ProjectType, id=request.POST['project_type'])
+        owner = get_object_or_404(User, id=request.POST['owner'])
 
         project.name = request.POST['name']
         project.start_date = request.POST['start_date']
         project.end_date = request.POST['end_date']
         project.status = request.POST['status']
-
-        project.owner = request.user
+        project.project_type = project_type
+        project.owner = owner
 
         project.save()
         return redirect('dep_tech')

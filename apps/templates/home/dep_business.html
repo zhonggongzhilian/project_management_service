@@ -28,89 +28,6 @@
 <div class="header bg-primary pb-6">
     <div class="container-fluid">
         <div class="header-body">
-
-            <div class="row align-items-center py-4">
-                <div class="col-lg-6 col-7">
-                    <h6 class="h2 text-white d-inline-block mb-0">商务部绩点申报</h6>
-                </div>
-            </div>
-
-            <!-- Card stats -->
-            <div class="row">
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-stats">
-                        <!-- Card body -->
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col">
-                                    <h5 class="card-title text-uppercase text-muted mb-0">工业互联网平台</h5>
-                                    <span class="h2 font-weight-bold mb-0">每万元 * 100%</span>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="icon icon-shape bg-gradient-red text-white rounded-circle shadow">
-                                        <i class="ni ni-active-40"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-stats">
-                        <!-- Card body -->
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col">
-                                    <h5 class="card-title text-uppercase text-muted mb-0">专利</h5>
-                                    <span class="h2 font-weight-bold mb-0">每万元 * 80%</span>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="icon icon-shape bg-gradient-orange text-white rounded-circle shadow">
-                                        <i class="ni ni-chart-pie-35"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-stats">
-                        <!-- Card body -->
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col">
-                                    <h5 class="card-title text-uppercase text-muted mb-0">科技项目</h5>
-                                    <span class="h2 font-weight-bold mb-0">每万元 * 70%</span>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="icon icon-shape bg-gradient-green text-white rounded-circle shadow">
-                                        <i class="ni ni-money-coins"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-stats">
-                        <!-- Card body -->
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col">
-                                    <h5 class="card-title text-uppercase text-muted mb-0">政府大项目（含无人机）</h5>
-                                    <span class="h2 font-weight-bold mb-0">每万元 * 30%</span>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="icon icon-shape bg-gradient-info text-white rounded-circle shadow">
-                                        <i class="ni ni-chart-bar-32"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div class="row align-items-center py-4">
                 <div class="col-lg-6 col-7">
                     <h6 class="h2 text-white d-inline-block mb-0">商务部项目进度管理</h6>
@@ -131,21 +48,35 @@
         <div class="col">
             <div class="card border-0">
                 <div class="card-header">
-                    <h3 class="mb-0">项目列表</h3>
+                    <div class="col-auto">
+                        <form method="GET" action="">
+                            <select name="user" class="form-control" style="display: inline-block; width: auto;"
+                                    onchange="this.form.submit()">
+                                <option value="">所有商务</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}" {% if user.id|stringformat:"s" == request.GET.user %}selected{% endif %}>
+                                {{ user.username }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table align-items-center table-flush">
                         <thead class="thead-light">
                         <tr>
+                            <th scope="col">负责人</th>
                             <th scope="col">项目类型</th>
                             <th scope="col">项目名称</th>
                             <th scope="col">项目金额</th>
+                            {% if not request.user.is_superuser %}
                             <th scope="col">项目进展</th>
+                            {% endif %}
                             <th scope="col">历史进展</th>
                             <th scope="col">开始日期</th>
                             <th scope="col">结束日期</th>
                             <th scope="col">状态</th>
-                            <th scope="col">负责人</th>
                             <th scope="col">进度预警</th>
                             <th scope="col">操作</th>
                         </tr>
@@ -156,21 +87,23 @@
                             data-name="{{ project.name }}"
                             data-start-date="{{ project.start_date }}"
                             data-end-date="{{ project.end_date }}"
-                            data-status="{{ project.status }}"">
+                            data-status="{{ project.status }}">
+                            <td>{{ project.owner.username }}</td>
                             <td>{{ project.project_type.name }}</td>
                             <td>{{ project.name }}</td>
                             <td>{{ project.amount }}</td>
+                            {% if not request.user.is_superuser %}
                             <td>{{ project.description|linebreaksbr }}</td>
+                            {% endif %}
                             <td>
                                 <button type="button" class="btn btn-info btn-sm" data-toggle="modal"
                                         data-target="#historyModal" data-project-id="{{ project.id }}">
-                                    查看历史进度
+                                    查看历史进展
                                 </button>
                             </td>
-                            <td>{{ project.start_date }}</td>
-                            <td>{{ project.end_date }}</td>
+                            <td>{{ project.start_date|date:"Y年n月j日" }}</td>
+                            <td>{{ project.end_date|date:"Y年n月j日" }}</td>
                             <td>{{ project.get_status_display }}</td>
-                            <td>{{ project.owner }}</td>
                             <td>
                                 {% if project.end_date < today %}
                                 ⚠️已逾期
@@ -196,9 +129,6 @@
             </div>
         </div>
     </div>
-
-    {% include "includes/footer.html" %}
-
 </div>
 
 <!-- History Modal -->
@@ -303,16 +233,16 @@
                         <input type="text" class="form-control" id="editProjectName" name="name" required>
                     </div>
                     <div class="form-group">
+                        <label for="editProjectType">项目类型</label>
+                        <select class="form-control" id="editProjectType" name="project_type" required>
+                            {% for project_type in project_types %}
+                            <option value="{{ project_type.id }}">{{ project_type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="editProjectName">项目金额（元）</label>
                         <input type="number" class="form-control" id="editProjectAmount" name="amount" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editStartDate">开始日期</label>
-                        <input type="date" class="form-control" id="editStartDate" name="start_date" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editEndDate">结束日期</label>
-                        <input type="date" class="form-control" id="editEndDate" name="end_date" required>
                     </div>
                     <div class="form-group">
                         <label for="editStatus">状态</label>
@@ -321,6 +251,14 @@
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editOwner">项目负责人</label>
+                        <select class="form-control" id="editOwner" name="owner" required>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">保存修改</button>

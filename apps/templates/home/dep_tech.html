@@ -150,8 +150,8 @@
                                     查看历史进度
                                 </button>
                             </td>
-                            <td>{{ project.start_date }}</td>
-                            <td>{{ project.end_date }}</td>
+                            <td>{{ project.start_date|date:"Y年n月j日" }}</td>
+                            <td>{{ project.end_date|date:"Y年n月j日" }}</td>
                             <td>{{ project.get_status_display }}</td>
                             <td>{{ project.progress }}%</td>
                             <td>{{ project.owner }}</td>
