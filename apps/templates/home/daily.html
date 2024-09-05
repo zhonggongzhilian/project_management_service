@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 {% endfor %}
             </select>
             <label for="description${itemIndex}">项目进展</label>
-            <input type="text" class="form-control" name="descriptions[]">
+            <textarea type="text" class="form-control" name="descriptions[]" rows="3"></textarea>
             <button type="button" class="btn btn-danger btn-sm mt-2 removeItemBtn">
                 删除
             </button>
