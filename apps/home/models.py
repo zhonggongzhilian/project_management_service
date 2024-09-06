@@ -7,7 +7,16 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
+
+class UserActionLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    action = models.CharField(max_length=255)  # 操作内容或URL
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.user} {self.action} at {self.timestamp}"
 
 class Department(models.Model):
     id = models.AutoField(primary_key=True)  # 默认行为是自动增长
@@ -102,7 +111,7 @@ class GPA(models.Model):
 class Customer(models.Model):
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255, blank=True, null=True)  # 允许为空
-    phone = models.CharField(max_length=20, blank=True, null=True)    # 允许为空
+    phone = models.CharField(max_length=20, blank=True, null=True)  # 允许为空
     company_details = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):

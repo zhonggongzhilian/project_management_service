@@ -207,7 +207,7 @@ def dep_develop_edit_project(request):
         project.status = request.POST['status']
         project.progress = request.POST['progress']
 
-        project_type = get_object_or_404(ProjectType, id=request.POST['project_type'])
+        project_type = get_object_or_404(ProjectType, id=request.POST['projecttype'])
         owner = get_object_or_404(User, id=request.POST['owner'])
         client = Customer.objects.get(id=request.POST['client'])
 
@@ -353,15 +353,10 @@ def dep_tech_edit_project(request):
     if request.method == 'POST':
         project_id = request.POST['id']
         project = get_object_or_404(Project, id=project_id)
-        project_type = get_object_or_404(ProjectType, id=request.POST['project_type'])
-        owner = get_object_or_404(User, id=request.POST['owner'])
 
         project.name = request.POST['name']
-        project.start_date = request.POST['start_date']
-        project.end_date = request.POST['end_date']
         project.status = request.POST['status']
-        project.project_type = project_type
-        project.owner = owner
+        project.progress = request.POST['progress']
 
         project.save()
         return redirect('dep_tech')
