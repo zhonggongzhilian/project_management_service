@@ -71,15 +71,19 @@ class SignUpForm(UserCreationForm):
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ['name', 'address', 'phone', 'company_details']  # 添加 'company_details' 字段
+        fields = ['name', 'address', 'phone', 'company_details']
 
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'required': True}),
-            'phone': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
-            'company_details': forms.Textarea(attrs={'class': 'form-control', 'required': False})
-            # 为 'company_details' 字段定义 widget
-        }
+    def __init__(self, *args, **kwargs):
+        super(CustomerForm, self).__init__(*args, **kwargs)
+        self.fields['address'].required = False
+        self.fields['phone'].required = False
+        self.fields['company_details'].required = False
+
+    # 如果有自定义的 clean 方法，请确保它不会阻止空值
+    def clean(self):
+        cleaned_data = super().clean()
+        # 你的自定义逻辑
+        return cleaned_data
 
 
 class CustomerContactForm(forms.ModelForm):

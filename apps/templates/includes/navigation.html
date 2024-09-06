@@ -1,3 +1,46 @@
+{% load static %}
+<style>
+/* custom.css */
+.navbar-nav .nav-item {
+  flex: 1; /* 每个 nav-item 占据相同的空间 */
+  text-align: center; /* 文字居中 */
+}
+
+.navbar-nav .nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: start; /* 确保内容靠左对齐 */
+  flex-direction: row; /* 确保图标和文字在同一行 */
+  padding: 0.5rem 1rem; /* 调整为合适的内边距 */
+}
+
+.navbar-nav .nav-link i {
+  margin-right: 0.5rem; /* 图标和文字之间的间距 */
+}
+
+@media (min-width: 992px) { /* 对于大屏幕 */
+  .navbar-nav .nav-item {
+    flex-basis: auto; /* 自动宽度 */
+  }
+}
+
+@media (max-width: 991px) and (min-width: 768px) { /* 对于中等屏幕 */
+  .navbar-nav .nav-item {
+    flex-basis: 50%; /* 每个 nav-item 占据50%的宽度，两行 */
+  }
+}
+
+@media (max-width: 767px) { /* 对于小屏幕 */
+  .navbar-nav .nav-item {
+    flex-basis: 50%; /* 每个 nav-item 占据50%的宽度，两行 */
+  }
+}
+</style>
+
+{% load static %}
+
+{% load static %}
+
 <nav class="navbar navbar-top navbar-expand navbar-dark bg-primary border-bottom">
   <div class="container-fluid">
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
@@ -5,52 +48,51 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarResponsive">
       <!-- Navbar links -->
-      <ul class="navbar-nav mr-auto">
+      <ul class="navbar-nav mr-auto d-flex flex-wrap">
         <li class="nav-item">
           <a class="nav-link" href="/">
             <i class="ni ni-tv-2 text-orange"></i>
-            <span>中工纵览</span>
+            <span class="nav-link-text">中工纵览</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'dep_develop' %}">
             <i class="ni ni-settings text-red"></i>
-            <span>研发部</span>
+            <span class="nav-link-text">研发部</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'dep_business' %}">
             <i class="ni ni-hat-3 text-orange"></i>
-            <span>商务部</span>
+            <span class="nav-link-text">商务部</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'dep_tech' %}">
             <i class="ni ni-caps-small text-yellow"></i>
-            <span>科技项目部</span>
+            <span class="nav-link-text">科技项目部</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'customer-list' %}">
             <i class="fas fa-users text-green"></i>
-            <span>客户管理</span>
+            <span class="nav-link-text">客户管理</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'daily' %}">
             <i class="ni ni-calendar-grid-58 text-default"></i>
-            <span>日报</span>
+            <span class="nav-link-text">日报</span>
           </a>
         </li>
       </ul>
-
 
       <ul class="navbar-nav align-items-center  ml-auto ml-md-0 ">
         <li class="nav-item dropdown">
           <a class="nav-link pr-0" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <div class="media align-items-center">
               <span class="avatar avatar-sm rounded-circle">
-                <img alt="Image placeholder" src="/static/assets/img/theme/team-1.jpg">
+                <img alt="Image placeholder" src="{% static 'assets/img/theme/team-1.jpg' %}">
               </span>
               <div class="media-body  ml-2  d-none d-lg-block">
                 <span class="mb-0 text-sm  font-weight-bold">
