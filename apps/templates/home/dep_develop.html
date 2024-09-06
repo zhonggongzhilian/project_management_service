@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<style>
+<style xmlns:user.id xmlns:user.id>
     /* Ensure the table layout is auto */
     .table {
       table-layout: auto;
@@ -53,7 +53,8 @@
                                     onchange="this.form.submit()">
                                 <option value="">所有研发</option>
                                 {% for user in users %}
-                                <option value="{{ user.id }}" {% if user.id|stringformat:"s" == request.GET.user %}selected{% endif %}>
+                                <option value="{{ user.id }}"
+                                        {% if user.id|stringformat:"s" == request.GET.user %}selected{% endif %}>
                                 {{ user.username }}
                                 </option>
                                 {% endfor %}
@@ -65,43 +66,50 @@
                     <table class="table align-items-center table-flush">
                         <thead class="thead-light">
                         <tr>
-                            <th scope="col">负责人</th>
-                            <th scope="col">项目类型</th>
-                            <th scope="col">项目名称</th>
+                            <th scope="col" style="min-width: 100px; max-width: 100px;">负责人</th>
+                            <th scope="col" style="min-width: 100px; max-width: 100px;">客户</th>
+                            <th scope="col" style="min-width: 200px; max-width: 200px;">项目信息</th>
                             {% if not request.user.is_superuser %}
-                            <th scope="col">项目进展</th>
+                            <th scope="col" style="min-width: 1000px; max-width: 200px;">最新进展</th>
                             {% endif %}
-                            <th scope="col">历史进展</th>
-                            <th scope="col">开始日期</th>
-                            <th scope="col">结束日期</th>
-                            <th scope="col">状态</th>
-                            <th scope="col">进度</th>
-                            <th scope="col">进度预警</th>
-                            <th scope="col">操作</th>
+                            <th scope="col" style="min-width: 100px; max-width: 100px;">开始日期</th>
+                            <th scope="col" style="min-width: 100px; max-width: 100px;">结束日期</th>
+                            <th scope="col" style="min-width: 100px; max-width: 100px;">状态</th>
+                            <th scope="col" style="min-width: 100px; max-width: 100px;">进度</th>
+                            <th scope="col" style="min-width: 100px; max-width: 100px;">进度预警</th>
+                            <th scope="col"></th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for project in projects %}
-                        <tr class="project-row" data-id="{{ project.id }}"
+                        <tr class="project-row"
+                            data-id="{{ project.id }}"
                             data-name="{{ project.name }}"
                             data-start-date="{{ project.start_date }}"
                             data-end-date="{{ project.end_date }}"
-                            data-project-type="{{ project.project_type }}"
-                            data-owner="{{ project.owner }}"
+                            data-owner="{{ project.owner.id }}"
+                            data-client="{{ project.client.id }}"
                             data-status="{{ project.status }}"
+                            data-projecttype="{{ project.project_type.id }}"
                             data-progress="{{ project.progress }}">
                             <td>{{ project.owner }}</td>
-                            <td>{{ project.project_type.name }}</td>
-                            <td>{{ project.name }}</td>
+                            <td>
+                                {% if project.client %}
+                                {{ project.client }}
+                                {% else %}
+                                ⚠️请选择客户
+                                {% endif %}
+                            </td>
+                            <td>
+                                <!-- 点击项目名称时显示历史进展 -->
+                                <a href="#" class="show-history" data-toggle="modal"
+                                   data-target="#historyModal" data-project-id="{{ project.id }}">
+                                    {{ project.name }}
+                                </a>
+                            </td>
                             {% if not request.user.is_superuser %}
                             <td>{{ project.description|linebreaksbr }}</td>
                             {% endif %}
-                            <td>
-                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal"
-                                        data-target="#historyModal" data-project-id="{{ project.id }}">
-                                    查看历史进度
-                                </button>
-                            </td>
                             <td>{{ project.start_date|date:"Y年n月j日" }}</td>
                             <td>{{ project.end_date|date:"Y年n月j日" }}</td>
                             <td>{{ project.get_status_display }}</td>
@@ -113,11 +121,20 @@
                                 进度正常
                                 {% endif %}
                             </td>
-                            <td>
-                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal"
-                                        data-target="#editProjectModal" data-project-id="{{ project.id }}">
-                                    修改项目信息
-                                </button>
+                            <td class="text-right">
+                                <div class="dropdown">
+                                    <a class="btn btn-sm btn-icon-only text-light" href="#" role="button"
+                                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
+                                        <a class="dropdown-item edit-project" href="#" data-toggle="modal"
+                                           data-target="#editProjectModal"
+                                           data-project-id="{{ project.id }}">修改</a>
+                                        <a class="dropdown-item delete-project" href="#"
+                                           data-project-id="{{ project.id }}">删除</a>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -131,15 +148,12 @@
             </div>
         </div>
     </div>
-
-    {% include "includes/footer.html" %}
-
 </div>
 
 <!-- History Modal -->
 <div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel"
      aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="historyModalLabel">项目历史进度</h5>
@@ -183,6 +197,14 @@
                         <input type="text" class="form-control" id="projectName" name="name" required>
                     </div>
                     <div class="form-group">
+                        <label for="client">客户</label>
+                        <select class="form-control" id="client" name="client" required>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}">{{ client.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="projectType">项目类型</label>
                         <select class="form-control" id="projectType" name="project_type" required>
                             {% for project_type in project_types %}
@@ -205,6 +227,14 @@
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="owner">项目负责人</label>
+                        <select class="form-control" id="owner" name="owner" required>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">保存</button>
@@ -235,10 +265,18 @@
                         <input type="text" class="form-control" id="editProjectName" name="name" required>
                     </div>
 
+                    <div class="form-group">
+                        <label for="editClient">客户</label>
+                        <select class="form-control" id="editClient" name="client" required>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}">{{ client.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
                     <div class="form-group">
                         <label for="editProjectType">项目类型</label>
-                        <select class="form-control" id="editProjectType" name="project_type" required>
+                        <select class="form-control" id="editProjectType" name="projecttype" required>
                             {% for project_type in project_types %}
                             <option value="{{ project_type.id }}">{{ project_type.name }}</option>
                             {% endfor %}
@@ -279,30 +317,6 @@
 {% endblock content %}
 
 {% block javascripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        $('#editProjectModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Button that triggered the modal
-            var row = button.closest('tr'); // Get the row containing the button
-
-            // Extract data from the row
-            var projectId = row.data('id');
-            var projectName = row.data('name');
-            var status = row.data('status');
-            var progress = row.data('progress');
-            var owner = row.data('owner'); // 获取负责人ID
-            var project_type = row.data('project_type'); // 获取项目类型ID
-
-            // Populate the modal form with the project data
-            $('#editProjectId').val(projectId);
-            $('#editProjectName').val(projectName);
-            $('#editStatus').val(status);
-            $('#editProgress').val(progress);
-            $('#editOwner').val(owner);
-            $('#editProjectType').val(project_type);
-        });
-    });
-</script>
 
 <script>
     $(document).ready(function() {
@@ -314,7 +328,10 @@
         var endDate = $(this).data('end_date');
         var status = $(this).data('status');
         var priority = $(this).data('priority');
-        var project_type = $(this).data('project_type');
+        var progress = $(this).data('progress');
+        var projecttype = $(this).data('projecttype');
+        var owner = $(this).data('owner');
+        var client = $(this).data('client');
 
         $('#editProjectId').val(projectId);
         $('#editProjectName').val(projectName);
@@ -323,7 +340,10 @@
         $('#editEndDate').val(endDate);
         $('#editStatus').val(status);
         $('#editPriority').val(priority);
-        $('#editProjectType').val(project_type);
+        $('#editProgress').val(progress);
+        $('#editProjectType').val(projecttype);
+        $('#editOwner').val(owner);
+        $('#editClient').val(client);
       });
     });
 </script>
@@ -358,5 +378,52 @@
             });
         });
     });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // 修改项目
+    document.querySelectorAll('.edit-project').forEach(function (element) {
+        element.addEventListener('click', function (event) {
+            event.preventDefault();
+            var projectId = this.getAttribute('data-project-id');
+
+            // 打开模态框并设置项目ID等信息，逻辑与之前的修改按钮保持一致
+            // 你可以在这里触发模态框显示并填充相关项目数据
+            $('#editProjectModal').modal('show');
+            // 使用projectId加载项目详情，并填充到模态框的表单中
+        });
+    });
+
+    // 删除项目
+    document.querySelectorAll('.delete-project').forEach(function (element) {
+        element.addEventListener('click', function (event) {
+            event.preventDefault();
+            var projectId = this.getAttribute('data-project-id');
+
+            if (confirm('确定要删除这个项目吗？')) {
+                // 发起删除请求（可以使用AJAX或者跳转到删除URL）
+                fetch(`/delete_project/${projectId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',  // 确保CSRF令牌正确
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: projectId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 成功删除项目后刷新页面或移除项目行
+                        alert('项目已删除');
+                        location.reload(); // 刷新页面
+                    } else {
+                        alert('删除失败');
+                    }
+                });
+            }
+        });
+    });
+});
 </script>
 {% endblock javascripts %}
