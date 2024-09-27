@@ -3,7 +3,7 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 
-from datetime import date
+from datetime import date, datetime
 
 from django import template
 from django.contrib.auth.decorators import login_required
@@ -366,11 +366,27 @@ def dep_tech_edit_project(request):
 
 @login_required(login_url="/login/")
 def daily(request):
-    daily_reports = Daily.objects.all()  # 或者你可以根据需要筛选日报
-    projects = Project.objects.filter(owner=request.user)
-    return render(request, 'home/daily.html', {'daily_reports': daily_reports,
-                                               'projects': projects})
+    # 获取所有日报
+    daily_reports = Daily.objects.all()
 
+    # 获取所有项目
+    projects = Project.objects.filter(owner=request.user)
+
+    # 按部门对日报进行分组
+    daily_reports_by_department = {}
+    for daily_report in daily_reports:
+        department = daily_report.user_profile.department
+        if department not in daily_reports_by_department:
+            daily_reports_by_department[department] = []
+        daily_reports_by_department[department].append(daily_report)
+
+    # 准备传递给模板的数据
+    context = {
+        'daily_reports_by_department': daily_reports_by_department,
+        'projects': projects,
+    }
+
+    return render(request, 'home/daily.html', context)
 
 @login_required
 def delete_project(request, project_id):
@@ -388,14 +404,14 @@ def delete_project(request, project_id):
 @login_required(login_url="/login/")
 def daily_add(request):
     if request.method == 'POST':
-        today = date.today()
-
         content = request.POST.get('content')
         projects = request.POST.getlist('projects[]')
         descriptions = request.POST.getlist('descriptions[]')
+        date_str = request.POST.get('date')  # Get the date string from the form
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()  # Convert the date string to a datetime.date object
 
-        # Check if there's already a Daily entry for today
-        existing_daily = Daily.objects.filter(user_profile=request.user.userprofile, date=today).first()
+        # Check if there's already a Daily entry for the selected date
+        existing_daily = Daily.objects.filter(user_profile=request.user.userprofile, date=date).first()
 
         if existing_daily:
             # Delete existing DailyItems
@@ -406,7 +422,7 @@ def daily_add(request):
         # Create Daily instance
         daily = Daily.objects.create(
             user_profile=request.user.userprofile,
-            date=today,  # Or any other date
+            date=date,  # Use the selected date
             content=content
         )
 
@@ -417,7 +433,7 @@ def daily_add(request):
                 daily=daily,
                 project=project,
                 description=description,
-                date=today
+                date=date
             )
         return redirect('daily')  # Redirect to the daily reports page
 
