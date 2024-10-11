@@ -8,6 +8,7 @@ from datetime import date, datetime
 from django import template
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db import connection
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -16,7 +17,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from .models import Customer
+from .models import Customer, UserProfile
 from .models import Daily, GPA, DailyItem, Department, CustomerContact
 from .models import Project, ProjectType
 from ..authentication.forms import CustomerForm, CustomerContactForm
@@ -490,13 +491,11 @@ def submit_gpa(request):
 def customer_list(request):
     search_query = request.GET.get('search')
     customers = Customer.objects.all()
+    business_members = UserProfile.objects.filter(department_id=2)
+
     if search_query:
         customers = customers.filter(name__icontains=search_query)
-    return render(request, 'home/customers.html', {'customers': customers})
 
-
-@login_required(login_url="/login/")
-def customer_create(request):
     if request.method == 'POST':
         form = CustomerForm(request.POST)
         if form.is_valid():
@@ -504,7 +503,26 @@ def customer_create(request):
             return redirect('customer-list')
     else:
         form = CustomerForm()
-    return render(request, 'home/customer_form.html', {'form': form})
+
+    return render(request, 'home/customers.html', {'customers': customers,'form': form, 'business_members': business_members})
+
+
+@login_required(login_url="/login/")
+def customer_create(request):
+    business_members = UserProfile.objects.filter(department_id=2)
+    print(len(business_members))  # 检查商务部成员的数量
+
+    # 打印 SQL 查询
+    print(connection.queries[-1]['sql'])
+
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('customer-list')
+    else:
+        form = CustomerForm()
+    return render(request, 'home/customer_form.html', {'form': form, 'business_members': business_members})
 
 
 @login_required(login_url="/login/")
@@ -567,9 +585,3 @@ def delete_contact(request, customer_id):
     return redirect('customer-contact-detail', customer_id=customer_id)
 
 
-def customer_list(request):
-    search_query = request.GET.get('search')
-    customers = Customer.objects.all()
-    if search_query:
-        customers = customers.filter(name__icontains=search_query)
-    return render(request, 'home/customers.html', {'customers': customers})

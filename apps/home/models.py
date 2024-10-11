@@ -73,6 +73,10 @@ class UserProfile(models.Model):
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     gpa = models.FloatField(default=0.0)
 
+
+    def is_business_member(self):
+        return self.department_id == 2
+
     def __str__(self):
         return self.user.username
 
@@ -113,7 +117,9 @@ class Customer(models.Model):
     address = models.CharField(max_length=255, blank=True, null=True)  # 允许为空
     phone = models.CharField(max_length=20, blank=True, null=True)  # 允许为空
     company_details = models.CharField(max_length=255, blank=True, null=True)
-
+    customer_name = models.CharField(max_length=255, blank=True, null=True)
+    position = models.CharField(max_length=255, blank=True, null=True)
+    follower = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
         return self.name
 

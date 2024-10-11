@@ -7,7 +7,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from apps.home.models import Customer, CustomerContact
+from apps.home.models import Customer, CustomerContact, UserProfile, Department
 
 
 class LoginForm(forms.Form):
@@ -69,15 +69,12 @@ class SignUpForm(UserCreationForm):
 
 
 class CustomerForm(forms.ModelForm):
+    follower = forms.ModelChoiceField(queryset=UserProfile.objects.filter(department_id=2))
+
     class Meta:
         model = Customer
-        fields = ['name', 'address', 'phone', 'company_details']
+        fields = '__all__'
 
-    def __init__(self, *args, **kwargs):
-        super(CustomerForm, self).__init__(*args, **kwargs)
-        self.fields['address'].required = False
-        self.fields['phone'].required = False
-        self.fields['company_details'].required = False
 
     # 如果有自定义的 clean 方法，请确保它不会阻止空值
     def clean(self):

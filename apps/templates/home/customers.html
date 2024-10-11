@@ -37,26 +37,37 @@
                     <table class="table align-items-center table-flush">
                         <thead class="thead-light">
                 <tr>
-                    <th>客户名称</th>
-                    <th>客户地址</th>
-                    <th>客户电话</th>
-                    <th>公司详情</th>
-                    <th>操作</th>
+                        <th>序号</th>
+                        <th>客户名称</th>
+                        <th>客户地址</th>
+                        <th>客户姓名</th>
+                        <th>客户职位</th>
+                        <th>客户电话</th>
+                        <th>公司详情</th>
+                        <th>跟进人</th>
+                        <th>操作</th>
                 </tr>
             </thead>
             <tbody>
                 {% for customer in customers %}
                 <tr>
-                    <td><a href="{% url 'customer-contact-detail' customer.id %}">{{ customer.name }}</a></td>
-                    <td>{{ customer.address }}</td>
-                    <td>{{ customer.phone }}</td>
-                    <td>{{ customer.company_details }}</td>
-                    <td>
-                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#editCustomerModal" data-customer-id="{{ customer.id }}">
-                            修改
-                        </button>
-                        <button type="button" class="btn btn-danger btn-sm delete-customer-btn" data-customer-id="{{ customer.id }}">删除</button>
-                    </td>
+                    <td>{{ forloop.counter }}</td>
+                        <td><a href="{% url 'customer-contact-detail' customer.id %}">{{ customer.name }}</a></td>
+                        <td>{{ customer.address }}</td>
+                        <td>{{ customer.customer_name }}</td>
+                        <td>{{ customer.position }}</td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.company_details }}</td>
+                        <td>{{ customer.follower }}</td>
+                        <td>
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal"
+                                    data-target="#editCustomerModal" data-customer-id="{{ customer.id }}">
+                                修改
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm delete-customer-btn"
+                                    data-customer-id="{{ customer.id }}">删除
+                            </button>
+                        </td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -80,23 +91,42 @@
             <form method="post" action="{% url 'customer-create' %}">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="customerName">客户名称</label>
-                        <input type="text" class="form-control" id="customerName" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="customerAddress">客户地址</label>
-                        <input type="text" class="form-control" id="customerAddress" name="address">
-                    </div>
-                    <div class="form-group">
-                        <label for="customerPhone">客户电话</label>
-                        <input type="text" class="form-control" id="customerPhone" name="phone">
-                    </div>
-                    <div class="form-group">
-                        <label for="customerDetails">公司详情</label>
-                        <textarea class="form-control" id="customerDetails" name="company_details" rows="3"></textarea>
-                    </div>
-                </div>
+                                <div class="form-group">
+                                    <label for="customerName">客户名称</label>
+                                    <input type="text" class="form-control" id="customerName" name="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerAddress">客户地址</label>
+                                    <input type="text" class="form-control" id="customerAddress" name="address">
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerCustomer_name">客户姓名</label>
+                                    <input type="text" class="form-control" id="customerCustomer_name"
+                                           name="customer_name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerPosition">客户职位</label>
+                                    <input type="text" class="form-control" id="customerPosition" name="position">
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerPhone">客户电话</label>
+                                    <input type="text" class="form-control" id="customerPhone" name="phone">
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerDetails">公司详情</label>
+                                    <textarea class="form-control" id="customerDetails" name="company_details"
+                                              rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerFollower">跟进人</label>
+                                    <select class="form-control" id="customerFollower" name="follower">
+                                        <option value="">请选择跟进人</option>
+                                        {% for follower in business_members %}
+                                            <option value="{{ follower.id }}">{{ follower.user.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
                     <button type="submit" class="btn btn-primary">保存</button>
@@ -120,23 +150,42 @@
                 {% csrf_token %}
                 <input type="hidden" id="editCustomerId" name="id">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="editCustomerName">客户名称</label>
-                        <input type="text" class="form-control" id="editCustomerName" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editCustomerAddress">客户地址</label>
-                        <input type="text" class="form-control" id="editCustomerAddress" name="address">
-                    </div>
-                    <div class="form-group">
-                        <label for="editCustomerPhone">客户电话</label>
-                        <input type="text" class="form-control" id="editCustomerPhone" name="phone">
-                    </div>
-                    <div class="form-group">
-                        <label for="editCustomerDetails">公司详情</label>
-                        <textarea class="form-control" id="editCustomerDetails" name="company_details" rows="3"></textarea>
-                    </div>
-                </div>
+                                <div class="form-group">
+                                    <label for="editCustomerName">客户名称</label>
+                                    <input type="text" class="form-control" id="editCustomerName" name="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editCustomerAddress">客户地址</label>
+                                    <input type="text" class="form-control" id="editCustomerAddress" name="address">
+                                </div>
+                                <div class="form-group">
+                                    <label for="editCustomerCustomer_name">客户姓名</label>
+                                    <input type="text" class="form-control" id="editCustomerCustomer_name"
+                                           name="customer_name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="editCustomerPosition">客户职位</label>
+                                    <input type="text" class="form-control" id="editCustomerPosition" name="position">
+                                </div>
+                                <div class="form-group">
+                                    <label for="editCustomerPhone">客户电话</label>
+                                    <input type="text" class="form-control" id="editCustomerPhone" name="phone">
+                                </div>
+                                <div class="form-group">
+                                    <label for="editCustomerDetails">公司详情</label>
+                                    <textarea class="form-control" id="editCustomerDetails" name="company_details"
+                                              rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editCustomerFollower">跟进人</label>
+                                    <select class="form-control" id="editCustomerFollower" name="follower">
+                                        <option value="">请选择跟进人</option>
+                                        {% for follower in business_members %}
+                                            <option value="{{ follower.id }}">{{ follower.user.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
                     <button type="submit" class="btn btn-primary">保存修改</button>
@@ -160,11 +209,14 @@
             var customerId = button.data('customer-id');
 
             // Populate the modal form with the customer data
-            $('#editCustomerId').val(customerId);
-            $('#editCustomerName').val('');
-            $('#editCustomerAddress').val('');
-            $('#editCustomerPhone').val('');
-            $('#editCustomerDetails').val(''); // 初始化公司详情
+                $('#editCustomerId').val(customerId);
+                $('#editCustomerName').val(button.closest('tr').find('td:eq(1)').text()); // 获取并设置客户名称
+                $('#editCustomerAddress').val(button.closest('tr').find('td:eq(2)').text());
+                $('#editCustomerCustomer_name').val(button.closest('tr').find('td:eq(3)').text());
+                $('#editCustomerPosition').val(button.closest('tr').find('td:eq(4)').text());
+                $('#editCustomerPhone').val(button.closest('tr').find('td:eq(5)').text());
+                $('#editCustomerDetails').val(button.closest('tr').find('td:eq(6)').text());
+
         });
 
         // 删除客户按钮点击事件
