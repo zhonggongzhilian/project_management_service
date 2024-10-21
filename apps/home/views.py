@@ -492,7 +492,10 @@ def customer_list(request):
     search_query = request.GET.get('search')
     customers = Customer.objects.all()
     business_members = UserProfile.objects.filter(department_id=2)
+    print(len(business_members))  # 检查商务部成员的数量
 
+    # 打印 SQL 查询
+    print(connection.queries[-1]['sql'])
     if search_query:
         customers = customers.filter(name__icontains=search_query)
 
