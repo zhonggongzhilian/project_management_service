@@ -16,7 +16,7 @@ from django.template import loader
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
+from django.contrib import messages
 from .models import Customer, UserProfile
 from .models import Daily, GPA, DailyItem, Department, CustomerContact
 from .models import Project, ProjectType
@@ -457,10 +457,29 @@ def profile(request):
 
     my_projects = Project.objects.filter(owner=request.user)
 
+    # 获取所有部门，用于下拉菜单选择
+    departments = Department.objects.all()
+
+    if request.method == 'POST':
+        # 用户提交了部门修改请求
+        new_department_id = request.POST.get('department')
+        if new_department_id:
+            try:
+                new_department = Department.objects.get(id=new_department_id)
+                user_profile = request.user.userprofile
+                user_profile.department = new_department
+                user_profile.save()
+                messages.success(request, '部门已成功更新。')
+            except Department.DoesNotExist:
+                messages.error(request, '所选部门不存在。')
+        else:
+            messages.error(request, '请选择一个部门。')
+
     return render(request, 'home/profile.html', {
         'incomplete_projects': incomplete_projects,
         'my_projects': my_projects,
-        'is_superuser': is_superuser
+        'is_superuser': is_superuser,
+        'departments': departments
     })
 
 
@@ -486,16 +505,19 @@ def submit_gpa(request):
 
     return JsonResponse({'success': False})
 
-
 @login_required(login_url="/login/")
 def customer_list(request):
+    # 定义一个包含特定ID的列表
+    restricted_ids = [1, 2, 3, 4, 5, 6, 7, 9]
+
+    # 检查当前登录用户的 id 是否在受限列表中
+    if request.user.id in restricted_ids:
+        # 如果是，重定向到一个错误页面或者返回一个错误消息
+        return redirect('error_page')  # 确保你已经在urls.py中定义了error_page的URL
+
     search_query = request.GET.get('search')
     customers = Customer.objects.all()
     business_members = UserProfile.objects.filter(department_id=2)
-    print(len(business_members))  # 检查商务部成员的数量
-
-    # 打印 SQL 查询
-    print(connection.queries[-1]['sql'])
     if search_query:
         customers = customers.filter(name__icontains=search_query)
 
@@ -507,8 +529,11 @@ def customer_list(request):
     else:
         form = CustomerForm()
 
-    return render(request, 'home/customers.html', {'customers': customers,'form': form, 'business_members': business_members})
+    return render(request, 'home/customers.html', {'customers': customers, 'form': form, 'business_members': business_members})
 
+def error_page_view(request):
+    # 这里返回一个错误页面，你可以根据需要自定义这个页面
+    return render(request, 'home/error.html', {'error_message': '你没有权限访问这个页面'})
 
 @login_required(login_url="/login/")
 def customer_create(request):

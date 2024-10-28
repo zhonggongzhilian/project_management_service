@@ -7,7 +7,7 @@ from django.urls import path
 
 from apps.home import views
 from .views import customer_list, customer_create, customer_update, customer_delete, customer_contact_detail, \
-    create_contact, delete_contact
+    create_contact, delete_contact, error_page_view
 
 urlpatterns = [
 
@@ -46,4 +46,5 @@ urlpatterns = [
     path('customer/<int:customer_id>/contact/', customer_contact_detail, name='customer-contact-detail'),
     path('customer/<int:customer_id>/contact/create/', create_contact, name='customer-contact-create'),
     path('customer/<int:customer_id>/contact/delete/', delete_contact, name='customer-contact-delete'),
+    path('error/', error_page_view, name='error_page'),
 ]

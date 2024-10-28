@@ -1,25 +1,31 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %} Profile {% endblock title %}
+{% block title %} 个人中心 {% endblock title %}
 
 {% block content %}
 
 <style>
     .display-2 {
-      font-size: 2rem; /* Adjust the size as needed */
-      white-space: nowrap; /* Prevents the text from wrapping to a new line */
+      font-size: 2rem; /* 调整大小 */
+      white-space: nowrap; /* 防止文本换行 */
     }
+    .custom-select-width {
+      width: auto;
+      min-width: 150px; /* 您可以根据需要调整这个值 */
+    }
+</style>
+
 </style>
 
 <div class="header pb-6 d-flex align-items-center"
      style="min-height: 200px; background-image: url(/static/assets/img/theme/profile-cover.jpg); background-size: cover; background-position: center top;">
-    <!-- Mask -->
+    <!-- 遮罩层 -->
     <span class="mask bg-gradient-default opacity-8"></span>
 </div>
-<!-- Page content -->
+<!-- 页面内容 -->
 <div class="container-fluid mt--6">
-    <div class="row justify-content-center"> <!-- Center the row -->
-        <div class="col-xl-12 order-xl-2"> <!-- This column will center the card -->
+    <div class="row justify-content-center"> <!-- 居中 -->
+        <div class="col-xl-12 order-xl-2"> <!-- 居中卡片 -->
             <div class="card card-profile">
                 <div class="row justify-content-center">
                     <div class="col-lg-3 order-lg-2">
@@ -37,6 +43,29 @@
                     </div>
                 </div>
                 <div class="card-body pt-0">
+                    <!-- 修改部门的表单 -->
+                    <div class="text-center">
+                        <h5 class="h3">
+                            {{ request.user.username }} - {{ request.user.userprofile.department.name }}
+                        </h5>
+                        <div class="h5 font-weight-300">
+                            {{ request.user.email }}
+                        </div>
+                        <form method="post" action="" class="form-inline justify-content-center mt-3">
+                            {% csrf_token %}
+                            <div class="form-group mb-2">
+                                <label for="department" class="sr-only">选择部门</label>
+                                <select name="department" id="department" class="form-control form-control-sm custom-select-width">
+                                    {% for dept in departments %}
+                                    <option value="{{ dept.id }}" {% if request.user.userprofile.department.id == dept.id %}selected{% endif %}>{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm mb-2 ml-2">更新部门</button>
+                        </form>
+                    </div>
+
+                    <!-- 继续原有内容 -->
                     <div class="row">
                         <div class="col">
                             <div class="card-profile-stats d-flex justify-content-center">
@@ -55,15 +84,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="text-center">
-                        <h5 class="h3">
-                            {{ request.user.username }} - {{ request.user.userprofile.department.name }}
-                        </h5>
-                        <div class="h5 font-weight-300">
-                            {{ request.user.email }}
-                        </div>
-                    </div>
-                    <!-- Incomplete Projects -->
+                    <!-- 未完成的项目 -->
                     {% if request.user.is_superuser %}
                     <div class="mt-4">
                         <h4 class="mb-4">待审批项目</h4>
@@ -93,7 +114,7 @@
                         </table>
                     </div>
                     {% endif %}
-                    <!-- My Projects -->
+                    <!-- 我的项目 -->
                     <div class="mt-4">
                         <h4 class="mb-4">我的项目</h4>
                         <table class="table align-items-center table-flush">
@@ -123,8 +144,8 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
+                </div> <!-- 卡片内容结束 -->
+            </div> <!-- 卡片结束 -->
         </div>
     </div>
 </div>
@@ -132,5 +153,5 @@
 
 {% endblock content %}
 
-<!-- Specific JS goes HERE -->
+<!-- 在这里添加特定的JS -->
 {% block javascripts %}{% endblock javascripts %}
