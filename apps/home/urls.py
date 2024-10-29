@@ -47,4 +47,5 @@ urlpatterns = [
     path('customer/<int:customer_id>/contact/create/', create_contact, name='customer-contact-create'),
     path('customer/<int:customer_id>/contact/delete/', delete_contact, name='customer-contact-delete'),
     path('error/', error_page_view, name='error_page'),
+    path('change-password/', views.change_password, name='change_password'),
 ]

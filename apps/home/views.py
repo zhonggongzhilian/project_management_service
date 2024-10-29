@@ -21,7 +21,7 @@ from .models import Customer, UserProfile
 from .models import Daily, GPA, DailyItem, Department, CustomerContact
 from .models import Project, ProjectType
 from ..authentication.forms import CustomerForm, CustomerContactForm
-
+from apps.authentication.forms  import PasswordChangeForm
 
 @login_required(login_url="/login/")
 def index(request):
@@ -613,3 +613,31 @@ def delete_contact(request, customer_id):
     return redirect('customer-contact-detail', customer_id=customer_id)
 
 
+
+# 定义公司内部验证码（假设为固定值）
+COMPANY_VERIFICATION_CODE = 'ZGZL@8888'  # 请将此处替换为您的公司验证码
+
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            verification_code = form.cleaned_data.get('verification_code')
+            new_password = form.cleaned_data.get('new_password')
+
+            # 验证公司内部验证码
+            if verification_code != COMPANY_VERIFICATION_CODE:
+                messages.error(request, '公司内部验证码不正确。')
+                return render(request, 'home/change_password.html', {'form': form})
+
+            try:
+                user = User.objects.get(username=username)
+                user.set_password(new_password)
+                user.save()
+                messages.success(request, '密码已成功修改，请使用新密码登录。')
+                return redirect('login')
+            except User.DoesNotExist:
+                messages.error(request, '用户名不存在。')
+    else:
+        form = PasswordChangeForm()
+    return render(request, 'home/change_password.html', {'form': form})

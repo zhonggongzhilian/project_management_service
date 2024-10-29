@@ -6,7 +6,7 @@ Copyright (c) 2019 - present AppSeed.us
 import os
 from decouple import config
 from unipath import Path
-
+from django.contrib.messages import constants as messages
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = Path(__file__).parent
 CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -120,7 +120,13 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(CORE_DIR, 'apps/static'),
 )
-
+MESSAGE_TAGS = {
+    messages.DEBUG: 'debug',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',  # Bootstrap 的错误样式为 'danger'
+}
 
 #############################################################
 #############################################################
