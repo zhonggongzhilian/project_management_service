@@ -63,6 +63,7 @@
                             <th scope="col">状态</th>
                             <th scope="col">进度</th>
                             <th scope="col">负责人</th>
+                            <th scope="col">客户名称</th> <!-- 新增客户名称列 -->
                             <th scope="col">进度预警</th>
                             <th scope="col">操作</th>
                         </tr>
@@ -90,6 +91,13 @@
                             <td>{{ project.progress }}%</td>
                             <td>{{ project.owner }}</td>
                             <td>
+                                {% if project.client %}
+                                    {{ project.client.name }}
+                                {% else %}
+                                    无
+                                {% endif %}
+                            </td>
+                            <td>
                                 {% if project.end_date < today %}
                                 ⚠️已逾期
                                 {% else %}
@@ -105,7 +113,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="9" class="text-center">没有项目</td>
+                            <td colspan="12" class="text-center">没有项目</td>
                         </tr>
                         {% endfor %}
                         </tbody>
@@ -182,12 +190,23 @@
                         <input type="date" class="form-control" id="endDate" name="end_date" required>
                     </div>
                     <div class="form-group">
+                        <label for="client">客户名称</label>
+                        <input type="text" class="form-control" id="clientSearch" placeholder="搜索客户..." onkeyup="filterClients()">
+                        <select class="form-control" id="clientSelect" name="client">
+                            <option value="">选择客户</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="status">状态</label>
                         <select class="form-control" id="status" name="status" required>
                             <option value="not_started">未开始</option>
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
+                            <option value="stopped">停滞</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">保存</button>
@@ -196,6 +215,8 @@
         </div>
     </div>
 </div>
+
+
 
 <!-- Edit Project Modal -->
 <div class="modal fade" id="editProjectModal" tabindex="-1" role="dialog" aria-labelledby="editProjectModalLabel"
@@ -217,12 +238,23 @@
                         <input type="text" class="form-control" id="editProjectName" name="name" required>
                     </div>
                     <div class="form-group">
+                        <label for="editClient">客户名称</label>
+                        <input type="text" class="form-control" id="editClientSearch" placeholder="搜索客户..." onkeyup="filterEditClients()">
+                        <select class="form-control" id="editClientSelect" name="client">
+                            <option value="">选择客户</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="editStatus">状态</label>
                         <select class="form-control" id="editStatus" name="status" required>
                             <option value="not_started">未开始</option>
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
+                            <option value="stopped">停滞</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -235,6 +267,8 @@
         </div>
     </div>
 </div>
+
+
 {% endblock content %}
 
 {% block javascripts %}
@@ -318,4 +352,32 @@
         });
     });
 </script>
+
+<script>
+    function filterClients() {
+        const searchValue = document.getElementById('clientSearch').value.toLowerCase();
+        const clientSelect = document.getElementById('clientSelect');
+        const options = clientSelect.options;
+
+        for (let i = 1; i < options.length; i++) {
+            const option = options[i];
+            const text = option.text.toLowerCase();
+            option.style.display = text.includes(searchValue) ? '' : 'none';
+        }
+    }
+</script>
+<script>
+    function filterEditClients() {
+        const searchValue = document.getElementById('editClientSearch').value.toLowerCase();
+        const clientSelect = document.getElementById('editClientSelect');
+        const options = clientSelect.options;
+
+        for (let i = 1; i < options.length; i++) {
+            const option = options[i];
+            const text = option.text.toLowerCase();
+            option.style.display = text.includes(searchValue) ? '' : 'none';
+        }
+    }
+</script>
+
 {% endblock javascripts %}

@@ -141,6 +141,7 @@ class Project(models.Model):
         ('in_progress', '进行中'),
         ('completed', '已完成'),
         ('delayed', '延期'),
+        ('stopped','停滞')
     ]
 
     PRIORITY_CHOICES = [
@@ -163,8 +164,8 @@ class Project(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     amount = models.FloatField(default=0.0)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
-    is_approved = models.BooleanField(default=False)
     client = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True)
+    is_approved = models.BooleanField(default=False)  # 新增审核字段
 
     def __str__(self):
         return self.name

@@ -221,11 +221,89 @@ def dep_develop_edit_project(request):
 
     return redirect('dep_develop')
 
+@login_required(login_url="/login/")
+def submit_project_for_approval(request, project_id):
+    if request.method == 'POST':
+        project = get_object_or_404(Project, id=project_id)
+
+        # 确保进度为100%
+        if project.progress == 100:
+            project.is_approved = False  # 设置为待审核状态
+            project.save()
+            return JsonResponse({'success': True, 'message': '项目已提交审核'})
+
+    return JsonResponse({'success': False, 'message': '提交审核失败'})
+
+
+@login_required(login_url="/login/")
+def approve_project(request, project_id):
+    if request.method == 'POST' and request.user.is_superuser:
+        project = get_object_or_404(Project, id=project_id)
+
+        if project.progress == 100:
+            project.is_approved = True
+            project.save()
+            return JsonResponse({'success': True, 'message': '项目已审核通过'})
+
+    return JsonResponse({'success': False, 'message': '审核失败'})
+
+@login_required(login_url="/login/")
+def return_project_for_modification(request, project_id):
+    if request.method == 'POST' and request.user.is_superuser:
+        project = get_object_or_404(Project, id=project_id)
+
+        # 将审核状态设置为未通过，并且项目进度可以保留为100%
+        if project.is_approved:
+            project.is_approved = False
+            project.save()
+            return JsonResponse({'success': True, 'message': '项目已退回修改'})
+
+    return JsonResponse({'success': False, 'message': '退回修改失败'})
+
+@login_required(login_url="/login/")
+def submit_review(request):
+    if request.method == 'POST':
+        project_id = request.POST.get('project_id')
+        project = get_object_or_404(Project, id=project_id)
+        if project.status == 'completed':
+            project.is_approved = False  # 标记为待审核状态
+            project.save()
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'})
+
+
+@login_required(login_url="/login/")
+def approve_project(request):
+    if request.method == 'POST':
+        project_id = request.POST.get('project_id')
+        project = get_object_or_404(Project, id=project_id)
+        if project.status == 'completed':
+            project.is_approved = True  # 标记为审核通过
+            project.status = '已审核'  # 状态改为已审核
+            project.save()
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'})
+
+
+@login_required(login_url="/login/")
+def return_edit(request):
+    if request.method == 'POST':
+        project_id = request.POST.get('project_id')
+        project = get_object_or_404(Project, id=project_id)
+        if project.status == '已审核' and project.is_approved:
+            project.is_approved = False  # 返回修改，标记为未审核状态
+            project.status = '已完成'  # 状态改回已完成，允许再次提交审核
+            project.save()
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'})
 
 @login_required(login_url="/login/")
 def dep_business(request):
     # 获取所有用户以供选择
     users = User.objects.filter(userprofile__department__id=2)
+
+    # 获取所有客户列表
+    clients = Customer.objects.all()
 
     # 获取查询参数
     selected_user_id = request.GET.get('user')
@@ -250,6 +328,7 @@ def dep_business(request):
         'projects': projects,
         'users': users,
         'project_types': project_types,
+        'clients': clients,
         'selected_user': selected_user_id,  # 将选择的用户ID传递回模板
     })
 
@@ -290,35 +369,18 @@ def dep_business_edit_project(request):
         project = get_object_or_404(Project, id=project_id)
         project_type = get_object_or_404(ProjectType, id=request.POST['project_type'])
         owner = get_object_or_404(User, id=request.POST['owner'])
-
+        client = get_object_or_404(Customer, id=request.POST['client'])  # 添加这行代码，确保 client 定义正确
         project.name = request.POST['name']
         project.status = request.POST['status']
         project.amount = request.POST['amount']
         project.project_type = project_type
         project.owner = owner
+        project.client = client  # 确保更新客户信息
 
         project.save()
         return redirect('dep_business')
 
     return redirect('dep_business')
-
-
-@login_required(login_url="/login/")
-def dep_tech(request):
-    if request.user.is_superuser:  # 如果用户是管理员，查看所有项目
-        projects = Project.objects.filter(department=3)
-        users = User.objects.all()
-    else:
-        # 非管理员用户只能查看自己负责的项目
-        projects = Project.objects.filter(owner=request.user, department=3)
-        users = User.objects.filter(username=request.user.username)
-
-    project_types = ProjectType.objects.filter(department=3)
-    for project in projects:
-        daily_item = DailyItem.objects.filter(project=project).first()
-        project.description = daily_item.description if daily_item else ""
-    return render(request, 'home/dep_tech.html', {'projects': projects, 'users': users, 'project_types': project_types})
-
 
 @login_required(login_url="/login/")
 def dep_tech_create_project(request):
@@ -331,6 +393,8 @@ def dep_tech_create_project(request):
         owner = request.user
         project_type = ProjectType.objects.get(id=request.POST['project_type'])
         department = Department.objects.get(id=3)
+        client_id = request.POST.get('client', None)
+        client = Customer.objects.get(id=client_id) if client_id else None
 
         project = Project.objects.create(
             name=name,
@@ -340,7 +404,8 @@ def dep_tech_create_project(request):
             status=status,
             department=department,
             owner=owner,
-            amount=amount
+            amount=amount,
+            client=client
         )
         project.save()
 
@@ -358,11 +423,32 @@ def dep_tech_edit_project(request):
         project.name = request.POST['name']
         project.status = request.POST['status']
         project.progress = request.POST['progress']
+        client_id = request.POST.get('client', None)
+        project.client = Customer.objects.get(id=client_id) if client_id else None
 
         project.save()
         return redirect('dep_tech')
 
     return redirect('dep_tech')
+
+
+@login_required(login_url="/login/")
+def dep_tech(request):
+    if request.user.is_superuser:
+        projects = Project.objects.filter(department=3)
+        users = User.objects.all()
+    else:
+        projects = Project.objects.filter(owner=request.user, department=3)
+        users = User.objects.filter(username=request.user.username)
+
+    project_types = ProjectType.objects.filter(department=3)
+    customers = Customer.objects.all()  # 传递客户列表
+
+    for project in projects:
+        daily_item = DailyItem.objects.filter(project=project).first()
+        project.description = daily_item.description if daily_item else ""
+
+    return render(request, 'home/dep_tech.html', {'projects': projects, 'users': users, 'project_types': project_types, 'customers': customers})
 
 
 @login_required(login_url="/login/")
@@ -507,14 +593,6 @@ def submit_gpa(request):
 
 @login_required(login_url="/login/")
 def customer_list(request):
-    # 定义一个包含特定ID的列表
-    restricted_ids = [1, 2, 3, 4, 5, 6, 7, 9]
-
-    # 检查当前登录用户的 id 是否在受限列表中
-    if request.user.id in restricted_ids:
-        # 如果是，重定向到一个错误页面或者返回一个错误消息
-        return redirect('error_page')  # 确保你已经在urls.py中定义了error_page的URL
-
     search_query = request.GET.get('search')
     customers = Customer.objects.all()
     business_members = UserProfile.objects.filter(department_id=2)
@@ -531,9 +609,6 @@ def customer_list(request):
 
     return render(request, 'home/customers.html', {'customers': customers, 'form': form, 'business_members': business_members})
 
-def error_page_view(request):
-    # 这里返回一个错误页面，你可以根据需要自定义这个页面
-    return render(request, 'home/error.html', {'error_message': '你没有权限访问这个页面'})
 
 @login_required(login_url="/login/")
 def customer_create(request):

@@ -95,11 +95,12 @@
                             <td>{{ project.owner.username }}</td>
                             <td>
                                 {% if project.client %}
-                                {{ project.client }}
+                                    {{ project.client.name }}
                                 {% else %}
-                                ⚠️请选择客户
+                                    ⚠️请选择客户
                                 {% endif %}
                             </td>
+
                             <td>
                                 <!-- 点击项目名称时显示历史进展 -->
                                 <a href="#" class="show-history" data-toggle="modal"
@@ -133,6 +134,17 @@
                                            data-project-id="{{ project.id }}">修改</a>
                                         <a class="dropdown-item delete-project" href="#"
                                            data-project-id="{{ project.id }}">删除</a>
+                                        {% if project.status == 'completed' %}
+                                            <a class="dropdown-item submit-review" href="#"
+                                               data-project-id="{{ project.id }}">提交审核</a>
+                                            {% if project.is_approved %}
+                                                <a class="dropdown-item return-edit" href="#"
+                                                   data-project-id="{{ project.id }}">返回修改</a>
+                                            {% else %}
+                                                <a class="dropdown-item approve-project" href="#"
+                                                   data-project-id="{{ project.id }}">审核通过</a>
+                                            {% endif %}
+                                        {% endif %}
                                     </div>
                                 </div>
                             </td>
@@ -197,7 +209,8 @@
                         <input type="text" class="form-control" id="projectName" name="name" required>
                     </div>
                     <div class="form-group">
-                        <label for="client">客户</label>
+                        <label for="clientSearch">客户名称</label>
+                        <input type="text" class="form-control" id="clientSearch" placeholder="搜索客户..." onkeyup="filterClients()">
                         <select class="form-control" id="client" name="client" required>
                             {% for client in clients %}
                             <option value="{{ client.id }}">{{ client.name }}</option>
@@ -231,6 +244,7 @@
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
+                            <option value="stopped">停滞</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -268,7 +282,8 @@
                         <input type="text" class="form-control" id="editProjectName" name="name" required>
                     </div>
                     <div class="form-group">
-                        <label for="editClient">客户</label>
+                        <label for="editClientSearch">客户名称</label>
+                        <input type="text" class="form-control" id="editClientSearch" placeholder="搜索客户..." onkeyup="filterEditClients()">
                         <select class="form-control" id="editClient" name="client" required>
                             {% for client in clients %}
                             <option value="{{ client.id }}">{{ client.name }}</option>
@@ -294,6 +309,7 @@
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
+                            <option value="stopped">停滞</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -377,4 +393,60 @@
         });
     });
 </script>
+<script>
+    $(document).ready(function () {
+        // 处理提交审核
+        $('.submit-review').on('click', function () {
+            var projectId = $(this).data('project-id');
+            $.post("{% url 'submit_review' %}", {project_id: projectId, csrfmiddlewaretoken: '{{ csrf_token }}'}, function () {
+                alert('提交审核成功');
+                location.reload();
+            });
+        });
+
+        // 处理审核通过
+        $('.approve-project').on('click', function () {
+            var projectId = $(this).data('project-id');
+            $.post("{% url 'approve_project' %}", {project_id: projectId, csrfmiddlewaretoken: '{{ csrf_token }}'}, function () {
+                alert('项目审核通过');
+                location.reload();
+            });
+        });
+
+        // 处理返回修改
+        $('.return-edit').on('click', function () {
+            var projectId = $(this).data('project-id');
+            $.post("{% url 'return_edit' %}", {project_id: projectId, csrfmiddlewaretoken: '{{ csrf_token }}'}, function () {
+                alert('项目已返回修改');
+                location.reload();
+            });
+        });
+    });
+</script>
+<script>
+    function filterClients() {
+        const searchValue = document.getElementById('clientSearch').value.toLowerCase();
+        const clientSelect = document.getElementById('client');
+        const options = clientSelect.options;
+
+        for (let i = 1; i < options.length; i++) {
+            const option = options[i];
+            const text = option.text.toLowerCase();
+            option.style.display = text.includes(searchValue) ? '' : 'none';
+        }
+    }
+
+    function filterEditClients() {
+        const searchValue = document.getElementById('editClientSearch').value.toLowerCase();
+        const clientSelect = document.getElementById('editClient');
+        const options = clientSelect.options;
+
+        for (let i = 1; i < options.length; i++) {
+            const option = options[i];
+            const text = option.text.toLowerCase();
+            option.style.display = text.includes(searchValue) ? '' : 'none';
+        }
+    }
+</script>
+
 {% endblock javascripts %}

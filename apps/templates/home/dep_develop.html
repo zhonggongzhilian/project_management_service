@@ -81,68 +81,49 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for project in projects %}
-                        <tr class="project-row"
-                            data-id="{{ project.id }}"
-                            data-name="{{ project.name }}"
-                            data-start-date="{{ project.start_date }}"
-                            data-end-date="{{ project.end_date }}"
-                            data-owner="{{ project.owner.id }}"
-                            data-client="{{ project.client.id }}"
-                            data-status="{{ project.status }}"
-                            data-projecttype="{{ project.project_type.id }}"
-                            data-progress="{{ project.progress }}">
-                            <td>{{ project.owner }}</td>
-                            <td>
-                                {% if project.client %}
-                                {{ project.client }}
-                                {% else %}
-                                ⚠️请选择客户
-                                {% endif %}
-                            </td>
-                            <td>
-                                <!-- 点击项目名称时显示历史进展 -->
-                                <a href="#" class="show-history" data-toggle="modal"
-                                   data-target="#historyModal" data-project-id="{{ project.id }}">
-                                    {{ project.name }}
-                                </a>
-                            </td>
-                            {% if not request.user.is_superuser %}
-                            <td>{{ project.description|linebreaksbr }}</td>
-                            {% endif %}
-                            <td>{{ project.start_date|date:"Y年n月j日" }}</td>
-                            <td>{{ project.end_date|date:"Y年n月j日" }}</td>
-                            <td>{{ project.get_status_display }}</td>
-                            <td>{{ project.progress }}%</td>
-                            <td>
-                                {% if project.end_date < today %}
-                                ⚠️已逾期
-                                {% else %}
-                                进度正常
-                                {% endif %}
-                            </td>
-                            <td class="text-right">
-                                <div class="dropdown">
-                                    <a class="btn btn-sm btn-icon-only text-light" href="#" role="button"
-                                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </a>
-                                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                                        <a class="dropdown-item edit-project" href="#" data-toggle="modal"
-                                           data-target="#editProjectModal"
-                                           data-project-id="{{ project.id }}">修改</a>
-                                        <a class="dropdown-item delete-project" href="#"
-                                           data-project-id="{{ project.id }}">删除</a>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="9" class="text-center">没有项目</td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
+                            {% for project in projects %}
+                            <tr class="project-row" data-id="{{ project.id }}"
+                                data-name="{{ project.name }}"
+                                data-start-date="{{ project.start_date }}"
+                                data-end-date="{{ project.end_date }}"
+                                data-owner="{{ project.owner.id }}"
+                                data-client="{{ project.client.id }}"
+                                data-status="{{ project.status }}"
+                                data-projecttype="{{ project.project_type.id }}"
+                                data-progress="{{ project.progress }}"
+                                data-approved="{{ project.is_approved }}">
+                                <td>{{ project.owner }}</td>
+                                <td>{{ project.client }}</td>
+                                <td>{{ project.name }}</td>
+                                <td>{{ project.start_date|date:"Y年n月j日" }}</td>
+                                <td>{{ project.end_date|date:"Y年n月j日" }}</td>
+                                <td>{{ project.get_status_display }}</td>
+                                <td>{{ project.progress }}%</td>
+                                <td>
+                                    {% if project.progress == 100 and not project.is_approved %}
+                                    <button class="btn btn-primary btn-sm submit-approval" data-project-id="{{ project.id }}">提交审核</button>
+                                    {% elif project.is_approved %}
+                                    已审核
+                                    {% else %}
+                                    进度正常
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">
+                                    {% if request.user.is_superuser %}
+                                        {% if not project.is_approved %}
+                                        <button class="btn btn-success btn-sm approve-project" data-project-id="{{ project.id }}">审核通过</button>
+                                        {% else %}
+                                        <button class="btn btn-warning btn-sm return-project" data-project-id="{{ project.id }}">退回修改</button>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="12" class="text-center">没有项目</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
                     </table>
                 </div>
             </div>
@@ -227,6 +208,7 @@
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
+                            <option value="stopped">停滞</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -290,6 +272,7 @@
                             <option value="in_progress">进行中</option>
                             <option value="completed">已完成</option>
                             <option value="delayed">延期</option>
+                            <option value="stopped">停滞</option>
                         </select>
                     </div>
 
@@ -426,4 +409,74 @@
     });
 });
 </script>
+<script>
+    $(document).ready(function() {
+        // 提交审核
+        $('.submit-approval').on('click', function() {
+            var projectId = $(this).data('project-id');
+
+            $.ajax({
+                url: `/submit_project_for_approval/${projectId}/`,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();  // 刷新页面
+                    } else {
+                        alert(response.message);
+                    }
+                }
+            });
+        });
+
+        // 审核通过
+        $('.approve-project').on('click', function() {
+            var projectId = $(this).data('project-id');
+
+            $.ajax({
+                url: `/approve_project/${projectId}/`,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();  // 刷新页面
+                    } else {
+                        alert(response.message);
+                    }
+                }
+            });
+        });
+
+        // 退回修改
+        $('.return-project').on('click', function() {
+            var projectId = $(this).data('project-id');
+
+            if (confirm('确定要退回该项目修改吗？')) {
+                $.ajax({
+                    url: `/return_project_for_modification/${projectId}/`,
+                    type: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();  // 刷新页面
+                        } else {
+                            alert(response.message);
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>
+
+
 {% endblock javascripts %}
